@@ -1,4 +1,4 @@
-# TODO — Passo 1: Fundação
+# Passo 1: Fundação
 
 - [x] Configure Django com `django-environ` lendo `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` e `DATABASE_URL` do ambiente; remova `ALLOWED_HOSTS = ["*"]` e a chave fixa. Crie `.env.example` e um `.env` de desenvolvimento ignorado que funcione no Preview. Inclua apps/middlewares de sessão, autenticação, mensagens e admin, além de WhiteNoise. Com `DEBUG=False`, use cookies `Secure`, HSTS e os demais cabeçalhos seguros solicitados. Confirme `.env`, `.venv`, `__pycache__` e `staticfiles/` no `.gitignore` e remova qualquer `__pycache__` versionado.
 - [x] Crie o projeto Supabase `trilha-dev` na região South America — São Paulo e na organização `Roqu3 Workspace`; use senha forte somente com letras e números. Configure a URL do Session pooler, porta `5432`, `sslmode=require`, e grave a URL apenas no `.env`. Valide com `python manage.py check --database default` e `python manage.py migrate`.
