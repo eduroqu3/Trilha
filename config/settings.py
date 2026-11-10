@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "apps.escolas.apps.EscolasConfig",
     "apps.contas.apps.ContasConfig",
+    "apps.avaliacoes.apps.AvaliacoesConfig",
     "config.apps.ConfigConfig",
 ]
 

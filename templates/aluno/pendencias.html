@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Minha escuta — trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page coord-page">
+  <div class="site-container coord-layout">
+    <p class="eyebrow"><span></span>UMA ESCUTA COM CUIDADO</p>
+    <h1>O que você quer compartilhar?</h1>
+    <p class="auth-lede">Sua contribuição é anônima. Responda apenas sobre aulas das turmas em que você está matriculado.</p>
+    {% if ciclo %}
+      <section class="auth-card coord-card coord-wide" aria-labelledby="pendencias">
+        <h2 id="pendencias">Aulas que aguardam sua escuta</h2>
+        {% if vinculos %}
+          <ul class="coord-list">
+            {% for vinculo in vinculos %}
+              <li>
+                <span>{{ vinculo.disciplina.nome }}<small>{{ vinculo.professor.nome }} · {{ vinculo.turma.nome }}</small></span>
+                <a class="text-button" href="{% url 'aluno_avaliar' vinculo.pk %}">Avaliar <span aria-hidden="true">→</span></a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="empty-state">Você já compartilhou sua escuta com todos os vínculos disponíveis neste ciclo.</p>
+        {% endif %}
+      </section>
+    {% else %}
+      <section class="auth-card coord-card coord-wide" aria-labelledby="sem-ciclo">
+        <h2 id="sem-ciclo">Por enquanto, não há um ciclo aberto</h2>
+        <p class="empty-state">Quando houver uma nova escuta, este espaço estará aqui para você.</p>
+      </section>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}

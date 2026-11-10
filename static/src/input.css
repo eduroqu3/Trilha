@@ -394,6 +394,8 @@ h1, h2, blockquote { margin: 0; font-family: var(--serif); font-weight: 400; let
 .coord-table th { color: var(--deep); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
 .coord-table td { color: var(--dark); }
 .form-alert ul { margin: 8px 0 0; padding-left: 18px; }
+.anonymity-callout { max-width: 680px; margin-top: 28px; border-left-width: 3px; background: var(--pale); }
+.anonymity-callout span { color: var(--mustard); }
 .honeypot { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden !important; }
 .site-messages { padding: 9px 20px; color: var(--white); background: var(--deep); font-size: 12px; text-align: center; }
 .site-messages p { margin: 0; }

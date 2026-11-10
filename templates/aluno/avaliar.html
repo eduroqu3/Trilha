@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Compartilhar escuta — trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page coord-page">
+  <div class="site-container coord-layout">
+    <p class="eyebrow"><span></span>COMPARTILHAR EXPERIÊNCIA</p>
+    <h1>Uma conversa sobre a aula</h1>
+    <p class="auth-lede">{{ vinculo.disciplina.nome }} · {{ vinculo.professor.nome }} · {{ vinculo.turma.nome }}</p>
+    <div class="auth-quote anonymity-callout" role="note"><span aria-hidden="true">✦</span> Sua resposta é anônima. Não escreva seu nome nem informações que possam revelar sua identidade.</div>
+    <section class="auth-card coord-card coord-wide" aria-labelledby="questionario">
+      <h2 id="questionario">Questionário</h2>
+      {% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      <form method="post" class="coord-form" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+          {% include "componentes/campo.html" with campo=field %}
+        {% endfor %}
+        <button class="button button-primary" type="submit">Enviar minha escuta <span aria-hidden="true">↗</span></button>
+      </form>
+    </section>
+  </div>
+</main>
+{% endblock %}
