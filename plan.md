@@ -4,7 +4,7 @@
 
 Construir uma landing page única, em português brasileiro, para apresentar a proposta TRILHA a estudantes, docentes e escolas. O briefing anexado é a referência de conteúdo e direção visual; a Blueprint aprovada confirma página estática e demonstrativa, sem banco de dados, APIs, busca funcional ou dados reais.
 
-A aplicação será uma view Django 5 renderizada no servidor, com um template semântico e estáticos locais. O servidor usará Python 3.12 e a porta 3000. Tailwind CSS será carregado pelo Play CDN para manter o uso de classes utilitárias sem instalar Node; o CSS local complementará paleta, composição editorial, ilustrações e responsividade. JavaScript de negócio não será necessário: menu móvel e FAQ usarão elementos nativos acessíveis (`details`/`summary`). Não haverá DRF, JWT, React, TypeScript, banco de dados ou endpoints extras. Fontes Fraunces e Manrope serão carregadas do Google Fonts; ilustração original do hero será um asset da página.
+A aplicação será uma view Django 5 renderizada no servidor, com um template semântico e estáticos locais. O servidor usará Python 3.12 e a porta 3000. Tailwind CSS será compilado com o CLI standalone, sem Node; o arquivo gerado `static/css/app.css` será versionado, e `static/css/site.css` complementará a paleta, composição editorial, ilustrações e responsividade. JavaScript de negócio não será necessário: menu móvel e FAQ usarão elementos nativos acessíveis (`details`/`summary`). Não haverá DRF, JWT, React, TypeScript, banco de dados ou endpoints extras. O logo e a ilustração do hero serão servidos de `static/img/`; Fraunces e Manrope continuarão carregadas do Google Fonts.
 
 ## Arquitetura e estrutura
 
@@ -13,8 +13,9 @@ A aplicação será uma view Django 5 renderizada no servidor, com um template s
 - `trilha_site/urls.py`: raiz da página e rota estática `/manus-routes.json` quando servida pela app.
 - `trilha_site/views.py`: view simples da landing page, sem dependência de dados.
 - `templates/landing.html`: header, hero, princípio, experiência do estudante, perfis demonstrativos, citação, escolas, percurso, FAQ, CTA e footer.
+- `static/css/tailwind.input.css` e `static/css/app.css`: entrada Tailwind e saída compilada pelo CLI standalone.
 - `static/css/site.css`: tokens de cor, tipografia, motivos decorativos, ajustes responsivos e foco acessível.
-- Imagem do hero: ilustração editorial em geração no armazenamento gerenciado, referenciada em `templates/landing.html` pelo caminho reservado `/manus-storage/async-images/xWuC6muC9bJwHloGaBSSe4/image-1.webp`.
+- `static/img/logo.svg` e `static/img/hero.svg`: logo baixado e ilustração local do hero.
 - `requirements.txt`: dependências Python fixadas na família Django 5.2.
 - `manus-routes.json`: declaração da única rota HTML, `/`.
 
