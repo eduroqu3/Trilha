@@ -1,6 +1,6 @@
 # TRILHA
 
-Landing institucional em português brasileiro e fundação Django 5.2, servida por templates. O sistema usa sessões nativas do Django, PostgreSQL e arquivos estáticos locais; ainda não contém apps de domínio.
+Landing institucional em português brasileiro e aplicação Django 5.2, servida por templates. O sistema usa sessões nativas do Django, PostgreSQL e arquivos estáticos locais. O Passo 2 adiciona contas, escolas, autenticação por e-mail e painéis provisórios por papel.
 
 ## Requisitos
 
@@ -70,6 +70,11 @@ config/                            settings, URLs, views, WSGI e comandos
   management/commands/aplicar_rls.py
 templates/base.html                metadados, fontes, CSS e estrutura comum
 templates/landing.html             conteúdo institucional
+templates/componentes/              componentes de formulário e identidade visual
+templates/contas/                   cadastro, login e troca de senha
+templates/painel/                   painel provisório por papel
+apps/contas/                        usuário, autenticação e papéis
+apps/escolas/                       escola e vínculo do usuário
 static/src/input.css               fonte Tailwind v4
 static/css/app.css                 build compilado e versionado
 static/img/                        imagens locais da landing
