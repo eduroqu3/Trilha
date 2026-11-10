@@ -128,6 +128,7 @@ def test_questionario_tem_escala_visual_e_acoes_de_conta(client, contexto):
     assert "questionnaire-card" in content
     assert "scale-options" in content
     assert "consent-field" in content
+    assert "/static/js/questionnaire.js" in content
     assert "Voltar" in content
     assert 'action="/sair/"' in content
 

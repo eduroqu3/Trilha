@@ -366,7 +366,9 @@ h1, h2, blockquote { margin: 0; font-family: var(--serif); font-weight: 400; let
 .dashboard-card form { max-width: 220px; }
 .account-actions { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 28px; }
 .account-actions form { margin: 0; }
+.account-actions-right { display: flex; align-items: center; gap: 18px; }
 .system-back { font-size: 12px; }
+.password-link { color: var(--deep); }
 .logout-button { padding: 0; color: var(--muted); font-size: 11px; font-weight: 700; }
 .logout-button:hover { color: var(--dark); }
 .logout-button span { color: var(--deep); margin-left: 4px; }
@@ -402,7 +404,7 @@ h1, h2, blockquote { margin: 0; font-family: var(--serif); font-weight: 400; let
 .form-alert ul { margin: 8px 0 0; padding-left: 18px; }
 .anonymity-callout { max-width: 680px; margin-top: 28px; border-left-width: 3px; background: var(--pale); }
 .anonymity-callout span { color: var(--mustard); }
-.questionnaire-card { max-width: 820px; box-shadow: 11px 12px 0 rgba(220, 232, 212, .85); }
+.questionnaire-card { max-width: 820px; margin-inline: auto; box-shadow: 11px 12px 0 rgba(220, 232, 212, .85); }
 .questionnaire-form { gap: 0 !important; margin-top: 16px !important; }
 .question-field { min-width: 0; margin: 0; padding: 25px 0; border: 0; border-top: 1px solid var(--line); }
 .question-field legend, .text-question > label { display: block; margin-bottom: 14px; color: var(--dark); font-family: var(--serif); font-size: 20px; font-weight: 400; letter-spacing: -.025em; line-height: 1.2; }

@@ -235,3 +235,53 @@ def test_troca_de_senha_tem_acoes_da_conta_sem_voltar_ao_inicio(client, usuario)
     assert response.status_code == 200
     assert 'action="/sair/"' in content
     assert "Voltar ao início" not in content
+
+
+@pytest.mark.parametrize("role", [Usuario.Role.ALUNO, Usuario.Role.PROFESSOR])
+def test_aluno_e_professor_podem_trocar_senha(client, escola, role):
+    user = Usuario.objects.create_user(
+        email=f"{role.lower()}-senha@example.com",
+        password="Senha-forte-123!",
+        nome="Pessoa que troca senha",
+        role=role,
+        escola=escola,
+    )
+    client.force_login(user)
+
+    page = client.get(reverse("trocar_senha"))
+    response = client.post(
+        reverse("trocar_senha"),
+        {
+            "old_password": "Senha-forte-123!",
+            "new_password1": "Outra-senha-forte-456!",
+            "new_password2": "Outra-senha-forte-456!",
+        },
+    )
+
+    assert page.status_code == 200
+    assert b"Trocar senha" in page.content
+    assert response.status_code == 302
+    assert response.url == reverse(
+        "aluno" if role == Usuario.Role.ALUNO else "professor"
+    )
+    assert client.session.get("_auth_user_id") == str(user.pk)
+
+
+def test_login_do_aluno_mostra_acesso_a_troca_de_senha(client, escola):
+    user = Usuario.objects.create_user(
+        email="aluno-primeiro-acesso@example.com",
+        password="Senha-forte-123!",
+        nome="Aluno primeiro acesso",
+        role=Usuario.Role.ALUNO,
+        escola=escola,
+    )
+
+    login_response = client.post(
+        reverse("entrar"),
+        {"email": user.email, "senha": "Senha-forte-123!"},
+    )
+    page = client.get(login_response.url)
+
+    assert login_response.url == reverse("aluno")
+    assert page.status_code == 200
+    assert "Trocar senha" in page.content.decode()
