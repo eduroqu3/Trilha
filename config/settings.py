@@ -11,7 +11,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
 ]
-ROOT_URLCONF = "trilha_site.urls"
+ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -20,7 +20,7 @@ TEMPLATES = [
         "OPTIONS": {"context_processors": []},
     }
 ]
-WSGI_APPLICATION = "trilha_site.wsgi.application"
+WSGI_APPLICATION = "config.wsgi.application"
 
 # The site is a static editorial landing page; no data is written or queried.
 DATABASES = {"default": {"ENGINE": "django.db.backends.dummy"}}

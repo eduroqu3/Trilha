@@ -1,19 +1,9 @@
-<!doctype html>
+{% extends "base.html" %}
 {% load static %}
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#FAF6EE">
-  <meta name="description" content="Um espaço para estudantes compartilharem como aprendem — e para escolas transformarem essas percepções em conversas e melhorias pedagógicas.">
-  <title>trilha — Escuta que vira caminho</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400,0,1;0,9..144,500,0,1;1,9..144,400,0,1&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/app.css' %}">
-  <link rel="stylesheet" href="{% static 'css/site.css' %}">
-</head>
-<body>
+
+{% block title %}trilha — Escuta que vira caminho{% endblock %}
+
+{% block content %}
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 
   <header class="site-header" id="inicio">
@@ -246,5 +236,4 @@
       <p class="footer-signoff">Escuta respeitosa.<br>Aprendizagem em movimento.</p>
     </div>
   </footer>
-</body>
-</html>
+{% endblock %}

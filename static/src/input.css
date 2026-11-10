@@ -1,3 +1,24 @@
+@import "tailwindcss";
+
+@source "../../templates";
+
+@theme {
+  --color-cream: #FAF6EE;
+  --color-sand: #F0E9DA;
+  --color-deep: #216B58;
+  --color-dark: #243A31;
+  --color-pale: #DCE8D4;
+  --color-sage: #9DBBA1;
+  --color-mustard: #E6A447;
+  --color-muted: #59685F;
+  --color-line: #D7D2C7;
+  --color-white: #FFFDF8;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Manrope", Arial, sans-serif;
+}
+
+
+/* Existing TRILHA page styles. */
 :root {
   color-scheme: light;
   --cream: #FAF6EE;
