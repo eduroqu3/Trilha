@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Django command-line entry point for the TRILHA landing page."""
+
 import os
 import sys
-
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
