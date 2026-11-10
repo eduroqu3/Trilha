@@ -4,6 +4,11 @@ Você é um engenheiro sênior Python/Django. Vamos construir, em partes, o sist
 da Trilha, uma plataforma de avaliação de professores focada em escuta
 pedagógica, sem rankings punitivos. 100% em Django.
 
+Este é um projeto Django padrão, que será hospedado fora da Manus. Não crie nem
+mantenha arquivos, rotas ou caminhos específicos da plataforma (manus-routes.json,
+/manus-storage/, URLs de CDN da Manus). Todo asset fica em static/ do próprio
+repositório, e nada pode depender da infraestrutura da Manus para funcionar.
+
 Stack Recomendada:
 Python 3.12, Django 5 com templates (sem DRF, sem JWT, sem React, sem Node), sessão nativa do Django com CSRF, PostgreSQL no Supabase (acesso só pelo Django, via DATABASE_URL do Session pooler, porta 5432, sslmode=require), django-environ, HTMX (arquivo em static/js, só se necessário), Tailwind CSS v4 via CLI standalone, pytest-django, ruff. Hospedagem: um único serviço Python.
 
