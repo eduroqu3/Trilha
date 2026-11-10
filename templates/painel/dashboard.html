@@ -18,10 +18,7 @@
           <a href="{% url 'coordenacao_vinculos' %}">Vínculos</a>
         </nav>
       {% endif %}
-      <form method="post" action="{% url 'sair' %}">
-        {% csrf_token %}
-        <button class="button button-primary" type="submit">Sair <span aria-hidden="true">↗</span></button>
-      </form>
+      {% include "componentes/acoes_conta.html" %}
       <p class="auth-switch"><a href="{% url 'trocar_senha' %}">Trocar minha senha</a></p>
     </section>
   </div>

@@ -118,6 +118,20 @@ def test_ciclo_cria_seis_escalas_e_duas_perguntas_de_texto(client, contexto):
     }
 
 
+def test_questionario_tem_escala_visual_e_acoes_de_conta(client, contexto):
+    client.force_login(contexto["aluno"])
+
+    response = client.get(reverse("aluno_avaliar", args=[contexto["vinculo"].pk]))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert "questionnaire-card" in content
+    assert "scale-options" in content
+    assert "consent-field" in content
+    assert "Voltar" in content
+    assert 'action="/sair/"' in content
+
+
 def test_coordena_nao_abre_segundo_ciclo_nao_publicado(client, contexto):
     client.force_login(contexto["coord"])
     response = client.post(reverse("coordenacao_ciclos"), {"nome": "Outro ciclo"})

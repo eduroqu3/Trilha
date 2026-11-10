@@ -184,3 +184,54 @@ def test_painel_da_coordenacao_tem_cartao_unico_centralizado(client, usuario):
     assert b"dashboard-layout" in response.content
     assert b"dashboard-card" in response.content
     assert "Olá, Coordenação" in response.content.decode()
+
+
+@pytest.mark.parametrize(
+    ("role", "url_name"),
+    [
+        (Usuario.Role.ALUNO, "aluno"),
+        (Usuario.Role.PROFESSOR, "professor"),
+        (Usuario.Role.COORDENACAO, "coordenacao"),
+    ],
+)
+def test_paineis_das_tres_contas_exibem_retorno_e_logout(
+    client, escola, role, url_name
+):
+    user = Usuario.objects.create_user(
+        email=f"{role.lower()}-acoes@example.com",
+        password="Senha-forte-123!",
+        nome="Pessoa das ações",
+        role=role,
+        escola=escola,
+    )
+    client.force_login(user)
+
+    response = client.get(reverse(url_name))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert 'action="/sair/"' in content
+    assert "Voltar" in content
+
+
+def test_retorno_externo_e_ignorado_no_painel(client, usuario):
+    client.force_login(usuario)
+
+    response = client.get(
+        reverse("coordenacao"),
+        HTTP_REFERER="https://fora-do-sistema.example/conta/",
+    )
+
+    assert response.status_code == 200
+    assert 'href="/coordenacao/"' in response.content.decode()
+
+
+def test_troca_de_senha_tem_acoes_da_conta_sem_voltar_ao_inicio(client, usuario):
+    client.force_login(usuario)
+
+    response = client.get(reverse("trocar_senha"))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert 'action="/sair/"' in content
+    assert "Voltar ao início" not in content

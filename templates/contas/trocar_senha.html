@@ -4,7 +4,7 @@
 {% block content %}
 <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 <div class="site-container auth-topbar">
-  <a class="auth-back" href="{% url 'home' %}"><span aria-hidden="true">←</span> Voltar ao início</a>
+  {% include "componentes/acoes_conta.html" %}
 </div>
 <main id="conteudo" class="auth-page">
   <div class="site-container auth-layout auth-layout-compact">

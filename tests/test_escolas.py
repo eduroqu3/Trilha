@@ -88,6 +88,28 @@ def test_papel_nao_coordena_nao_acessa_gestao(client, escola):
     assert response.url == reverse("home")
 
 
+@pytest.mark.parametrize(
+    "url_name",
+    [
+        "coordenacao_ciclos",
+        "coordenacao_turmas",
+        "coordenacao_disciplinas",
+        "coordenacao_professores",
+        "coordenacao_alunos",
+        "coordenacao_vinculos",
+    ],
+)
+def test_telas_da_coordenacao_exibem_acoes_de_conta(client, coordenacao, url_name):
+    login_coord(client, coordenacao)
+
+    response = client.get(reverse(url_name))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert "Voltar" in content
+    assert 'action="/sair/"' in content
+
+
 def test_coordena_cadastra_turma_e_disciplina(client, coordenacao):
     login_coord(client, coordenacao)
 

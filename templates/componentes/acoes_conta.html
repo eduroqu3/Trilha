@@ -1,0 +1,7 @@
+<div class="account-actions" aria-label="Ações da conta">
+  <a class="auth-back system-back" href="{{ voltar_url }}"><span aria-hidden="true">←</span> Voltar</a>
+  <form method="post" action="{% url 'sair' %}">
+    {% csrf_token %}
+    <button class="text-button logout-button" type="submit">Sair <span aria-hidden="true">↗</span></button>
+  </form>
+</div>
