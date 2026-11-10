@@ -1,4 +1,4 @@
-# TRILHA — Identidade Visual & Diretrizes de Design
+# TRILHA — Identidade Visual & Diretrizes de Design.
 
 Este documento é a fonte da verdade para qualquer alteração visual no projeto TRILHA. Ele deve ser consultado antes de qualquer mudança em templates, CSS ou novos componentes.
 
