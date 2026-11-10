@@ -46,3 +46,17 @@ Regras de trabalho: faça só a parte pedida, escreva testes junto com o código
 rode testes e ruff antes de terminar, não instale dependências desnecessárias,
 nunca imprima senhas, chaves ou o conteúdo do .env. Ao final, entregue um
 resumo curto do que foi feito e do que ficou pendente.
+
+Decisões do MVP:
+- Cadastro público de escola: qualquer escola cria sua conta em /cadastrar-escola/
+  (cria Escola + primeiro usuário COORDENACAO). Não existe papel ADMIN por enquanto.
+- Alunos e professores NÃO têm cadastro aberto: só a coordenação os cria.
+- Questionário padrão e fixo (6 perguntas de escala 1 a 5 e 2 de texto), criado
+  automaticamente com cada ciclo. Sem editor de perguntas.
+- Só pode existir um ciclo não publicado por escola por vez.
+- Stack complementar: whitenoise e gunicorn.
+- Supabase: a Manus cria e configura o projeto "trilha-dev" e grava a DATABASE_URL
+  só no .env (nunca versionado, nunca impressa). RLS ativado em todas as tabelas
+  do schema public, sem policies, e Data API desativada. As chaves anon/publishable
+  e service_role NÃO são usadas nem gravadas em lugar nenhum.
+- Comandos Python sempre como "python -m pytest" e "python -m ruff".
