@@ -359,6 +359,11 @@ h1, h2, blockquote { margin: 0; font-family: var(--serif); font-weight: 400; let
 .form-alert { margin-top: 20px; padding: 11px 13px; border-left: 3px solid var(--mustard); color: var(--dark); background: #f7e7d7; font-size: 12px; line-height: 1.6; }
 .auth-switch { margin: 23px 0 0; color: var(--muted); font-size: 11px; }
 .auth-switch a { color: var(--deep); font-weight: 700; }
+.dashboard-page { display: flex; align-items: center; }
+.dashboard-layout { width: 100%; max-width: 640px; }
+.dashboard-card { width: 100%; }
+.dashboard-card .auth-lede { max-width: 460px; margin: 0 0 25px; }
+.dashboard-card form { max-width: 220px; }
 .honeypot { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden !important; }
 .site-messages { padding: 9px 20px; color: var(--white); background: var(--deep); font-size: 12px; text-align: center; }
 .site-messages p { margin: 0; }

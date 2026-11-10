@@ -172,3 +172,15 @@ def test_troca_de_senha_usa_logo_oficial(client, usuario):
 
     assert response.status_code == 200
     assert b"/static/img/logo-completo.png" in response.content
+
+
+def test_painel_da_coordenacao_tem_cartao_unico_centralizado(client, usuario):
+    client.force_login(usuario)
+
+    response = client.get(reverse("coordenacao"))
+
+    assert response.status_code == 200
+    assert b"dashboard-page" in response.content
+    assert b"dashboard-layout" in response.content
+    assert b"dashboard-card" in response.content
+    assert "Olá, Coordenação" in response.content.decode()
