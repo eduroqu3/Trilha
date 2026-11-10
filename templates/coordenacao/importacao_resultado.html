@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Credenciais provisórias — trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page coord-page">
+  <div class="site-container coord-layout">
+    <p class="eyebrow"><span></span>UM ACESSO PARA CADA PESSOA</p>
+    <h1>Resultado</h1>
+    <p class="auth-lede">As senhas provisórias abaixo aparecem uma única vez. Guarde-as com cuidado e compartilhe-as diretamente com cada pessoa.</p>
+    {% include "coordenacao/_nav.html" %}
+    <section class="auth-card coord-card coord-wide" aria-labelledby="credenciais-heading">
+      <h2 id="credenciais-heading">Credenciais criadas</h2>
+      {% if criados %}<div class="coord-table-wrap"><table class="coord-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Senha provisória</th>{% if tipo == "alunos" %}<th>Turma</th>{% endif %}</tr></thead><tbody>{% for pessoa in criados %}<tr><td>{{ pessoa.nome }}</td><td>{{ pessoa.email }}</td><td><code>{{ pessoa.senha }}</code></td>{% if tipo == "alunos" %}<td>{{ pessoa.turma }}</td>{% endif %}</tr>{% endfor %}</tbody></table></div><a class="button button-primary" href="{% url 'download_importacao' %}">Baixar CSV <span aria-hidden="true">↗</span></a>{% else %}<p class="empty-state">Nenhuma conta foi criada.</p>{% endif %}
+      {% if erros %}<div class="form-alert" role="alert"><strong>Linhas que precisam de atenção</strong><ul>{% for erro in erros %}<li>{{ erro }}</li>{% endfor %}</ul></div>{% endif %}
+    </section>
+  </div>
+</main>
+{% endblock %}

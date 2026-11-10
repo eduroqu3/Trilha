@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Disciplinas — trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page coord-page">
+  <div class="site-container coord-layout">
+    <p class="eyebrow"><span></span>ORGANIZAR O CAMINHO</p>
+    <h1>Disciplinas</h1>
+    <p class="auth-lede">Mantenha os nomes das disciplinas que poderão fazer parte dos vínculos pedagógicos.</p>
+    {% include "coordenacao/_nav.html" %}
+    <div class="coord-columns">
+      <section class="auth-card coord-card" aria-labelledby="lista-disciplinas">
+        <h2 id="lista-disciplinas">Disciplinas cadastradas</h2>
+        {% if disciplinas %}<ul class="coord-list">{% for disciplina in disciplinas %}<li><span>{{ disciplina.nome }}</span><form method="post" action="{% url 'remover_disciplina' disciplina.pk %}">{% csrf_token %}<button class="text-button" type="submit">Remover</button></form></li>{% endfor %}</ul>{% else %}<p class="empty-state">Ainda não há disciplinas cadastradas.</p>{% endif %}
+      </section>
+      <section class="auth-card coord-card" aria-labelledby="nova-disciplina">
+        <h2 id="nova-disciplina">Nova disciplina</h2>
+        {% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <form method="post" class="coord-form" novalidate>{% csrf_token %}{% include "componentes/campo.html" with campo=form.nome %}<button class="button button-primary" type="submit">Criar disciplina <span aria-hidden="true">↗</span></button></form>
+      </section>
+    </div>
+  </div>
+</main>
+{% endblock %}

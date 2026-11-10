@@ -11,6 +11,7 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
+ALLOW_SEED_DEMO = env.bool("ALLOW_SEED_DEMO", default=False)
 PUBLIC_HTTPS = env.bool("PUBLIC_HTTPS", default=False)
 TRUST_PROXY_SSL_HEADER = env.bool("TRUST_PROXY_SSL_HEADER", default=False)
 

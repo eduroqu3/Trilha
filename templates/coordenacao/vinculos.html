@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Vínculos — trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page coord-page">
+  <div class="site-container coord-layout">
+    <p class="eyebrow"><span></span>CONSTRUIR O CONTEXTO</p><h1>Vínculos</h1>
+    <p class="auth-lede">Associe cada professor às turmas e disciplinas que fazem parte do seu contexto.</p>
+    {% include "coordenacao/_nav.html" %}
+    <div class="coord-columns">
+      <section class="auth-card coord-card" aria-labelledby="lista-vinculos"><h2 id="lista-vinculos">Vínculos cadastrados</h2>{% if vinculos %}<ul class="coord-list">{% for vinculo in vinculos %}<li><span>{{ vinculo.professor.nome }} <small>{{ vinculo.turma.nome }} · {{ vinculo.disciplina.nome }}</small></span><form method="post" action="{% url 'remover_vinculo' vinculo.pk %}">{% csrf_token %}<button class="text-button" type="submit">Remover</button></form></li>{% endfor %}</ul>{% else %}<p class="empty-state">Ainda não há vínculos cadastrados.</p>{% endif %}</section>
+      <section class="auth-card coord-card" aria-labelledby="novo-vinculo"><h2 id="novo-vinculo">Novo vínculo</h2>{% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}<form method="post" class="coord-form" novalidate>{% csrf_token %}{% include "componentes/campo.html" with campo=form.professor %}{% include "componentes/campo.html" with campo=form.turma %}{% include "componentes/campo.html" with campo=form.disciplina %}<button class="button button-primary" type="submit">Criar vínculo <span aria-hidden="true">↗</span></button></form></section>
+    </div>
+  </div>
+</main>
+{% endblock %}

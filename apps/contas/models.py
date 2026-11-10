@@ -3,6 +3,12 @@ from django.db import models
 
 
 class UsuarioManager(BaseUserManager):
+    def da_escola(self, user, **filters):
+        escola_id = getattr(user, "escola_id", None)
+        if not getattr(user, "is_authenticated", False) or not escola_id:
+            return self.none()
+        return self.filter(escola_id=escola_id, **filters)
+
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("O e-mail é obrigatório.")

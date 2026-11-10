@@ -26,6 +26,8 @@ python manage.py aplicar_rls
 python manage.py runserver
 ```
 
+Em desenvolvimento autorizado, `python manage.py seed_demo` cria dados fictícios para teste. O comando só roda com `DEBUG=True` ou `ALLOW_SEED_DEMO=true` e não deve ser habilitado em produção.
+
 **Depois de todo `migrate`, rode novamente `python manage.py aplicar_rls`.** O comando habilita Row Level Security em cada tabela do schema `public` e não cria policies. O projeto não usa chaves `anon`/`publishable` nem `service_role`; a aplicação conecta diretamente ao PostgreSQL pelo Django. A Data API do projeto Supabase atual está desativada; não a reative sem revisar o acesso.
 
 A landing fica em `http://127.0.0.1:8000/`; o admin padrão do Django fica em `/admin/`. Para gerar um usuário administrativo, use `python manage.py createsuperuser`.
@@ -82,5 +84,6 @@ tests/                             testes pytest-django
 .env.example                       exemplo sem credenciais
 docs/Contexto Fixo.md              stack, anonimato e decisões do MVP
 docs/Design Fixo.md                identidade visual e diretrizes
+docs/Passos/Passo 3.md             checklist da estrutura escolar
 requirements.txt                   dependências Python fixadas
 ```

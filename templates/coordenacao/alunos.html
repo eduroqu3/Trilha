@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Alunos — trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page coord-page">
+  <div class="site-container coord-layout">
+    <p class="eyebrow"><span></span>ESCUTAR CADA EXPERIÊNCIA</p><h1>Alunos</h1>
+    <p class="auth-lede">Cadastre cada pessoa em uma turma ou importe uma lista. As senhas provisórias aparecem apenas na tela de resultado.</p>
+    {% include "coordenacao/_nav.html" %}
+    <div class="coord-columns">
+      <section class="auth-card coord-card" aria-labelledby="novo-aluno"><h2 id="novo-aluno">Cadastrar um aluno</h2>{% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}<form method="post" class="coord-form" novalidate>{% csrf_token %}{% include "componentes/campo.html" with campo=form.nome %}{% include "componentes/campo.html" with campo=form.email %}{% include "componentes/campo.html" with campo=form.turma %}<button class="button button-primary" type="submit">Cadastrar aluno <span aria-hidden="true">↗</span></button></form></section>
+      <section class="auth-card coord-card" aria-labelledby="importar-alunos"><h2 id="importar-alunos">Importar por CSV</h2><p class="form-help">Cabeçalho obrigatório: <code>nome,email,turma</code>.</p>{% if csv_form.non_field_errors %}<div class="form-alert" role="alert">{{ csv_form.non_field_errors }}</div>{% endif %}<form method="post" action="{% url 'importar_alunos' %}" enctype="multipart/form-data" class="coord-form" novalidate>{% csrf_token %}{% include "componentes/campo.html" with campo=csv_form.arquivo %}<button class="button button-primary" type="submit">Importar alunos <span aria-hidden="true">↗</span></button></form></section>
+    </div>
+    <section class="auth-card coord-card coord-wide" aria-labelledby="lista-alunos"><h2 id="lista-alunos">Alunos cadastrados</h2>{% if alunos %}<ul class="coord-list">{% for aluno in alunos %}<li><span>{{ aluno.nome }} <small>{% for matricula in aluno.matriculas.all %}{{ matricula.turma.nome }}{% empty %}Sem turma{% endfor %}</small></span></li>{% endfor %}</ul>{% else %}<p class="empty-state">Ainda não há alunos cadastrados.</p>{% endif %}</section>
+  </div>
+</main>
+{% endblock %}

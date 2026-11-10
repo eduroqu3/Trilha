@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Professores — trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page coord-page">
+  <div class="site-container coord-layout">
+    <p class="eyebrow"><span></span>ACOLHER QUEM ENSINA</p><h1>Professores</h1>
+    <p class="auth-lede">Cadastre cada pessoa ou importe uma lista. As senhas provisórias aparecem apenas na tela de resultado.</p>
+    {% include "coordenacao/_nav.html" %}
+    <div class="coord-columns">
+      <section class="auth-card coord-card" aria-labelledby="novo-professor"><h2 id="novo-professor">Cadastrar um professor</h2>{% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}<form method="post" class="coord-form" novalidate>{% csrf_token %}{% include "componentes/campo.html" with campo=form.nome %}{% include "componentes/campo.html" with campo=form.email %}<button class="button button-primary" type="submit">Cadastrar professor <span aria-hidden="true">↗</span></button></form></section>
+      <section class="auth-card coord-card" aria-labelledby="importar-professores"><h2 id="importar-professores">Importar por CSV</h2><p class="form-help">Cabeçalho obrigatório: <code>nome,email</code>.</p>{% if csv_form.non_field_errors %}<div class="form-alert" role="alert">{{ csv_form.non_field_errors }}</div>{% endif %}<form method="post" action="{% url 'importar_professores' %}" enctype="multipart/form-data" class="coord-form" novalidate>{% csrf_token %}{% include "componentes/campo.html" with campo=csv_form.arquivo %}<button class="button button-primary" type="submit">Importar professores <span aria-hidden="true">↗</span></button></form></section>
+    </div>
+    <section class="auth-card coord-card coord-wide" aria-labelledby="lista-professores"><h2 id="lista-professores">Professores cadastrados</h2>{% if professores %}<ul class="coord-list">{% for professor in professores %}<li><span>{{ professor.nome }} <small>{{ professor.email }}</small></span></li>{% endfor %}</ul>{% else %}<p class="empty-state">Ainda não há professores cadastrados.</p>{% endif %}</section>
+  </div>
+</main>
+{% endblock %}
