@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Trocar senha — trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<div class="site-container auth-topbar">
+  <a class="auth-back" href="{% url 'home' %}"><span aria-hidden="true">←</span> Voltar ao início</a>
+</div>
+<main id="conteudo" class="auth-page">
+  <div class="site-container auth-layout auth-layout-compact">
+    <section class="auth-intro">
+      <a class="brand auth-brand" href="{% url 'home' %}" aria-label="trilha — início">
+        <img class="auth-logo" src="{% static 'img/logo-completo.png' %}" alt="trilha">
+      </a>
+      <p class="eyebrow"><span></span>CUIDAR DO ACESSO</p>
+      <h1>Uma senha que acompanha seu <em>caminho.</em></h1>
+      <p>Atualize seus dados com calma. Escolha uma senha que você reconheça e não compartilhe seu acesso.</p>
+    </section>
+    <section class="auth-card" aria-labelledby="senha-heading">
+      <h2 id="senha-heading">Trocar senha</h2>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "componentes/campo.html" with campo=form.old_password %}
+        {% include "componentes/campo.html" with campo=form.new_password1 %}
+        {% include "componentes/campo.html" with campo=form.new_password2 %}
+        <button class="button button-primary" type="submit">Atualizar senha <span aria-hidden="true">↗</span></button>
+      </form>
+    </section>
+  </div>
+</main>
+{% endblock %}

@@ -25,6 +25,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
+    "apps.escolas.apps.EscolasConfig",
+    "apps.contas.apps.ContasConfig",
     "config.apps.ConfigConfig",
 ]
 
@@ -66,6 +68,13 @@ DATABASES = {
         "CONN_HEALTH_CHECKS": True,
     }
 }
+
+AUTH_USER_MODEL = "contas.Usuario"
+AUTHENTICATION_BACKENDS = [
+    "apps.contas.backends.EmailBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+LOGIN_URL = "entrar"
 
 if TRUST_PROXY_SSL_HEADER:
     # Use only behind a trusted proxy that overwrites X-Forwarded-Proto.

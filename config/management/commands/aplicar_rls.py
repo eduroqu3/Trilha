@@ -32,4 +32,6 @@ class Command(BaseCommand):
         with connection.cursor() as cursor:
             cursor.execute(ENABLE_RLS_SQL)
 
-        self.stdout.write(self.style.SUCCESS("RLS habilitado nas tabelas do schema public."))
+        self.stdout.write(
+            self.style.SUCCESS("RLS habilitado nas tabelas do schema public.")
+        )

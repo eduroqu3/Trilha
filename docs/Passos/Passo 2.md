@@ -1,0 +1,9 @@
+# Passo 2: Contas, login e cadastro de escola.
+
+- [x] Crie `apps/contas` com `Usuario` (`AbstractUser`, login por e-mail, campos `nome`, `role` `ALUNO`/`PROFESSOR`/`COORDENACAO` e `escola` FK) e `apps/escolas` com `Escola` (`nome`, `limiar_minimo` padrão 5, `criada_em`). Escola obrigatória para todos os usuários.
+- [x] Crie a rota `/cadastrar-escola/` com formulário público (nome da escola, nome e e-mail do responsável, senha) que cria `Escola` + `Usuario` `COORDENACAO` na mesma transação, faz login e redireciona para `/coordenacao/`. Inclua limite de tentativas por IP, campo honeypot, validação de senha do Django e e-mail único.
+- [x] Implemente `/entrar/` (login por e-mail), `/sair/` (somente `POST`) e troca de senha em `/conta/senha/`. Use erro acolhedor que não revela se o e-mail existe, redirecionamento por papel (`ALUNO` → `/aluno/`, `PROFESSOR` → `/professor/`, `COORDENACAO` → `/coordenacao/`) e valide `next` com `url_has_allowed_host_and_scheme`.
+- [x] Implemente o decorator `@papel_requerido(...)` e painéis provisórios em `/aluno/`, `/professor/` e `/coordenacao/`, com título e saudação para validar o fluxo.
+- [x] Crie as telas no visual do Design Fixo, reaproveitando `base.html`, e os componentes em `templates/componentes/`: `botao`, `card`, `eyebrow`, `campo` de formulário, `aviso_anonimato` e `estado_vazio`. Na landing, ligue os botões `Entrar` a `/entrar/` e crie o chamado `Cadastrar minha escola` para `/cadastrar-escola/`, sem alterar o restante da landing.
+- [x] Escreva testes para cadastro de escola e coordenação, e-mail duplicado, login correto e incorreto, redirecionamento por papel, `next` externo ignorado, acesso sem login, papel errado bloqueado e logout somente via `POST`. Resultado verificado: 16 testes passaram.
+- [x] Rode `aplicar_rls` após o `migrate`. A migração foi aplicada no Supabase `trilha-dev`; a verificação confirmou 10 tabelas públicas com `rowsecurity=true` e nenhuma policy criada.
