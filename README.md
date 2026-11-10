@@ -40,6 +40,7 @@ templates/landing.html conteúdo da página
 static/src/input.css  fonte Tailwind e estilos da página
 static/css/app.css    CSS compilado e versionado
 static/img/           logos e ilustração local
-docs/visuals.md       identidade visual e diretrizes
+docs/Contexto Fixo.md regras de stack, anonimato e MVP
+docs/Design Fixo.md   identidade visual e diretrizes
 requirements.txt      dependências Python fixadas
 ```

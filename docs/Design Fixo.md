@@ -26,11 +26,12 @@ O logotipo é composto por **símbolo + wordmark**. As imagens .png em /static/i
 | `--pale` | `#DCE8D4` | Fundos de cartões, ícones, destaques suaves |
 | `--sage` | `#9DBBA1` | Barras decorativas, elementos secundários |
 | `--mustard` | `#E6A447` | Acentos, traços de rótulo, ponto da marca, foco |
-| `--muted` | `#718078` | Texto de apoio, legendas |
+| `--muted` | `#59685F` | Texto de apoio, legendas |
 | `--line` | `#D7D2C7` | Divisórias finas |
 | `--white` | `#FFFDF8` | Cartões, superfícies elevadas |
 
 **Regra:** verde profundo é a cor de marca; mostarda é sempre **acento**, nunca fundo dominante.
+O valor de `--muted` corresponde ao CSS atual e deve preservar o contraste mínimo WCAG AA.
 
 ---
 
@@ -89,7 +90,9 @@ O logotipo é composto por **símbolo + wordmark**. As imagens .png em /static/i
 - Acolhedor, reflexivo, respeitoso — nunca publicitário agressivo ou promocional.
 - Frases curtas, presente do indicativo, primeira pessoa do plural quando coletivo.
 - Palavras-chave: *escutar, contexto, caminho, conversa, experiência*.
-- **Proibido:** prometer funcionalidades, inventar dados, usar tom de veredito ("o melhor", "nota final", "ranking").
+- **Sistema interno:** é proibido inventar dados.
+- **Landing page institucional:** pode conter dados fictícios demonstrativos; essa exceção não se aplica ao sistema interno.
+- Em ambos, não prometer funcionalidades nem usar tom de veredito ("o melhor", "nota final", "ranking").
 
 ---
 

@@ -39,6 +39,8 @@ REGRA INEGOCIÁVEL, ANONIMATO POR ARQUITETURA:
 - Nunca logar corpo de requisição nas rotas de avaliação. Nunca gravar IP junto da avaliação. Nenhum identificador do aluno em URLs ou templates de confirmação.
 - Sem filtro por atributo do aluno, sem ranking, sem ordenação por nota.
 
+Dados fictícios são permitidos na landing page institucional para demonstração. O sistema interno não pode inventar dados: perfis, avaliações e resultados devem refletir registros reais existentes.
+
 Papéis: ALUNO, PROFESSOR, COORDENACAO. Todo queryset é isolado por escola.
 Mensagens da interface sempre acolhedoras e construtivas.
 
