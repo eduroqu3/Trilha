@@ -14,7 +14,7 @@ A aplicação será uma view Django 5 renderizada no servidor, com um template s
 - `trilha_site/views.py`: view simples da landing page, sem dependência de dados.
 - `templates/landing.html`: header, hero, princípio, experiência do estudante, perfis demonstrativos, citação, escolas, percurso, FAQ, CTA e footer.
 - `static/css/site.css`: tokens de cor, tipografia, motivos decorativos, ajustes responsivos e foco acessível.
-- `static/images/trilha-hero.png`: ilustração editorial exclusiva do hero.
+- Imagem do hero: ilustração editorial em geração no armazenamento gerenciado, referenciada em `templates/landing.html` pelo caminho reservado `/manus-storage/async-images/xWuC6muC9bJwHloGaBSSe4/image-1.webp`.
 - `requirements.txt`: dependências Python fixadas na família Django 5.2.
 - `manus-routes.json`: declaração da única rota HTML, `/`.
 
