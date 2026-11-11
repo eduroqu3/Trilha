@@ -99,7 +99,7 @@ def trocar_senha(request):
 
 
 def _painel(request, papel, titulo):
-    return render(request, "painel/dashboard.html", {"titulo": titulo, "papel": papel})
+    return render(request, f"{papel}/dashboard.html", {"titulo": titulo, "papel": papel})
 
 
 @papel_requerido(Usuario.Role.ALUNO)
@@ -152,7 +152,7 @@ def professor(request):
         )
     return render(
         request,
-        "painel/professor.html",
+        "professor/dashboard.html",
         {"titulo": "Espaço do professor", "papel": "professor", "resultados": resultados},
     )
 

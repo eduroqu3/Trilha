@@ -188,6 +188,13 @@ def test_painel_da_coordenacao_tem_cartao_unico_centralizado(client, usuario):
     assert "Olá, Coordenação" in response.content.decode()
 
 
+def test_templates_de_painel_seguem_a_estrutura_por_papel():
+    assert Path("templates/aluno/dashboard.html").exists()
+    assert Path("templates/professor/dashboard.html").exists()
+    assert Path("templates/coordenacao/dashboard.html").exists()
+    assert not Path("templates/painel").exists()
+
+
 @pytest.mark.parametrize(
     ("role", "url_name"),
     [
