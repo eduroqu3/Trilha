@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from django.contrib.admin.sites import AdminSite
 from django.test import RequestFactory
@@ -125,12 +127,33 @@ def test_questionario_tem_escala_visual_e_acoes_de_conta(client, contexto):
     content = response.content.decode()
 
     assert response.status_code == 200
+    assert "questionnaire-intro" in content
     assert "questionnaire-card" in content
     assert "scale-options" in content
     assert "consent-field" in content
     assert "/static/js/questionnaire.js" in content
     assert "Voltar" in content
     assert 'action="/sair/"' in content
+
+
+def test_questionario_impede_submit_invalido_e_rola_ate_o_campo():
+    script = Path("static/js/questionnaire.js").read_text()
+
+    assert "form.checkValidity()" in script
+    assert "event.preventDefault()" in script
+    assert "scrollIntoView" in script
+    assert 'block: "center"' in script
+
+
+def test_conclusao_nao_duplica_o_retorno_da_conta(client, contexto):
+    client.force_login(contexto["aluno"])
+
+    response = client.get(reverse("aluno_obrigado"))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert content.count("Voltar") == 1
+    assert "Voltar para minhas pendências" not in content
 
 
 def test_coordena_nao_abre_segundo_ciclo_nao_publicado(client, contexto):
