@@ -364,6 +364,22 @@ h1, h2, blockquote { margin: 0; font-family: var(--serif); font-weight: 400; let
 .dashboard-card { width: 100%; }
 .dashboard-card .auth-lede { max-width: 460px; margin: 0 0 25px; }
 .dashboard-card form { max-width: 220px; }
+.professor-layout { max-width: 860px; }
+.professor-results { display: grid; gap: 28px; margin: 30px 0; }
+.professor-result { padding-top: 24px; border-top: 1px solid var(--line); }
+.result-kicker { margin: 0 0 7px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.professor-result h2 { margin: 0 0 22px; color: var(--dark); font-family: var(--serif); font-size: 26px; font-weight: 400; letter-spacing: -.03em; }
+.dimension-bars { display: grid; gap: 13px; }
+.dimension-head { display: flex; justify-content: space-between; gap: 18px; margin-bottom: 5px; color: var(--muted); font-size: 11px; }
+.dimension-head span:last-child { color: var(--deep); font-weight: 700; }
+.dimension-track { height: 8px; background: var(--pale); }
+.dimension-track span { display: block; height: 100%; background: var(--deep); }
+.approved-comments { margin-top: 28px; padding: 18px; background: var(--sand); }
+.approved-comments h3 { margin: 0 0 10px; color: var(--deep); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.comment-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.comment-list li { color: var(--dark); font-size: 13px; line-height: 1.65; }
+.comment-list li::before { content: "“"; color: var(--mustard); font-family: var(--serif); font-size: 22px; margin-right: 5px; }
+.professor-empty { margin: 30px 0; }
 .account-actions { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 28px; }
 .account-actions form { margin: 0; }
 .account-actions-right { display: flex; align-items: center; gap: 18px; }
@@ -393,6 +409,16 @@ h1, h2, blockquote { margin: 0; font-family: var(--serif); font-weight: 400; let
 .coord-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 13px; border-top: 1px solid var(--line); color: var(--dark); font-size: 13px; }
 .coord-list li:last-child { border-bottom: 1px solid var(--line); }
 .coord-list small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+.cycle-actions { display: flex; gap: 12px; }
+.cycle-detail { display: block !important; padding: 15px 10px 18px !important; background: var(--pale); }
+.adherence-heading { margin-bottom: 9px; color: var(--deep); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.adherence-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; color: var(--dark); font-size: 12px; }
+.adherence-list li { display: flex; justify-content: space-between; gap: 14px; }
+.moderation-card { margin-top: 28px; }
+.moderation-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.moderation-list li { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 16px 0; border-top: 1px solid var(--line); }
+.moderation-list p { margin: 0; color: var(--dark); font-size: 13px; line-height: 1.65; }
+.moderation-actions { display: flex; flex: 0 0 auto; gap: 14px; }
 .text-button { flex: 0 0 auto; padding: 0; border: 0; color: var(--deep); background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; }
 .text-button:hover { color: var(--dark); text-decoration: underline; }
 .empty-state { margin: 0; padding: 18px; color: var(--muted); background: var(--pale); font-size: 13px; line-height: 1.6; }

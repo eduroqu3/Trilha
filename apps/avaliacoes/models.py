@@ -13,6 +13,7 @@ from .querysets import (
     PerguntaQuerySet,
     RespostaEscalaQuerySet,
     RespostaTextoQuerySet,
+    ResumoVinculoQuerySet,
 )
 
 
@@ -205,3 +206,33 @@ class RespostaTexto(models.Model):
         ]
         verbose_name = "resposta de texto"
         verbose_name_plural = "respostas de texto"
+
+
+class ResumoVinculo(models.Model):
+    ciclo = models.ForeignKey(
+        CicloAvaliacao,
+        on_delete=models.CASCADE,
+        related_name="resumos_vinculo",
+        verbose_name="ciclo",
+    )
+    vinculo = models.ForeignKey(
+        "escolas.Vinculo",
+        on_delete=models.PROTECT,
+        db_column="vinculo_id",
+        related_name="resumos_avaliacao",
+        verbose_name="vínculo",
+    )
+    n_avaliacoes = models.PositiveIntegerField("número de avaliações")
+    medias_por_dimensao = models.JSONField("médias por dimensão", default=dict)
+    objects = ResumoVinculoQuerySet.as_manager()
+
+    class Meta:
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=("ciclo", "vinculo"),
+                name="avaliacoes_resumo_ciclo_vinculo_unico",
+            )
+        ]
+        ordering = ("ciclo__nome", "vinculo")
+        verbose_name = "resumo por vínculo"
+        verbose_name_plural = "resumos por vínculo"

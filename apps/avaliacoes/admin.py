@@ -7,6 +7,7 @@ from .models import (
     Pergunta,
     RespostaEscala,
     RespostaTexto,
+    ResumoVinculo,
 )
 
 
@@ -69,6 +70,19 @@ class RespostaTextoAdmin(ConteudoAnonimoAdminMixin):
     list_display = ("avaliacao", "pergunta", "status_moderacao")
     list_filter = ("status_moderacao", "pergunta__ciclo__escola")
     readonly_fields = ("avaliacao", "pergunta", "texto", "status_moderacao")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ResumoVinculo)
+class ResumoVinculoAdmin(ConteudoAnonimoAdminMixin):
+    list_display = ("ciclo", "vinculo", "n_avaliacoes", "medias_por_dimensao")
+    list_filter = ("ciclo__escola", "ciclo")
+    readonly_fields = ("ciclo", "vinculo", "n_avaliacoes", "medias_por_dimensao")
 
     def has_add_permission(self, request):
         return False

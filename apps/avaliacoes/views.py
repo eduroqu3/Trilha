@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.contas.decorators import papel_requerido
 from apps.contas.models import Usuario
-from apps.escolas.models import Matricula, Vinculo
+from apps.escolas.models import Matricula, Turma, Vinculo
 
 from .forms import AvaliacaoForm, CicloAvaliacaoForm
 from .models import (
@@ -16,7 +16,11 @@ from .models import (
     RespostaEscala,
     RespostaTexto,
 )
-from .services import criar_ciclo_com_questionario
+from .services import (
+    criar_ciclo_com_questionario,
+    publicar_ciclo,
+    respostas_pendentes,
+)
 
 COORDENACAO = Usuario.Role.COORDENACAO
 ALUNO = Usuario.Role.ALUNO
@@ -28,6 +32,37 @@ def _ciclo_aberto(user):
         .filter(status=CicloAvaliacao.Status.ABERTO)
         .first()
     )
+
+
+def _adesao_por_turma(ciclo, user):
+    turmas = Turma.objects.para_usuario(user).prefetch_related("matriculas")
+    return [
+        {
+            "turma": turma,
+            "total": turma.matriculas.count(),
+            "respondidos": (
+                Participacao.objects.filter(
+                    ciclo=ciclo, vinculo__turma=turma
+                )
+                .values("aluno_id")
+                .distinct()
+                .count()
+            ),
+        }
+        for turma in turmas
+    ]
+
+
+def _contexto_ciclos(user):
+    ciclos = list(CicloAvaliacao.objects.para_usuario(user))
+    pendentes = RespostaTexto.objects.filter(
+        avaliacao__ciclo__escola_id=user.escola_id,
+        status_moderacao=RespostaTexto.StatusModeracao.PENDENTE,
+    ).exclude(texto="").order_by("?")
+    for ciclo in ciclos:
+        ciclo.adesao_por_turma = _adesao_por_turma(ciclo, user)
+        ciclo.pendentes_moderacao = pendentes.filter(avaliacao__ciclo=ciclo)
+    return ciclos, pendentes
 
 
 @papel_requerido(COORDENACAO)
@@ -44,14 +79,71 @@ def ciclos(request):
         else:
             messages.success(request, "Ciclo aberto com questionário padrão.")
             return redirect("coordenacao_ciclos")
+    ciclos_contexto, pendentes = _contexto_ciclos(request.user)
     return render(
         request,
         "coordenacao/ciclos.html",
         {
             "form": form,
-            "ciclos": CicloAvaliacao.objects.para_usuario(request.user),
+            "ciclos": ciclos_contexto,
+            "fila_moderacao": pendentes,
         },
     )
+
+
+@papel_requerido(COORDENACAO)
+def encerrar_ciclo(request, ciclo_id):
+    if request.method != "POST":
+        return redirect("coordenacao_ciclos")
+    ciclo = get_object_or_404(
+        CicloAvaliacao.objects.para_usuario(request.user), pk=ciclo_id
+    )
+    if ciclo.status == CicloAvaliacao.Status.ABERTO:
+        ciclo.status = CicloAvaliacao.Status.FECHADO
+        ciclo.save(update_fields=("status",))
+        messages.success(request, "Ciclo encerrado. A escuta está pronta para moderação.")
+    else:
+        messages.info(request, "Este ciclo não está aberto para encerramento.")
+    return redirect("coordenacao_ciclos")
+
+
+@papel_requerido(COORDENACAO)
+def publicar(request, ciclo_id):
+    if request.method != "POST":
+        return redirect("coordenacao_ciclos")
+    ciclo = get_object_or_404(
+        CicloAvaliacao.objects.para_usuario(request.user), pk=ciclo_id
+    )
+    if publicar_ciclo(ciclo):
+        messages.success(request, "Resultados publicados com cuidado e transparência.")
+    elif respostas_pendentes(ciclo).exists():
+        messages.error(request, "Ainda há comentários aguardando moderação antes da publicação.")
+    else:
+        messages.info(request, "O ciclo precisa estar fechado para ser publicado.")
+    return redirect("coordenacao_ciclos")
+
+
+@papel_requerido(COORDENACAO)
+def moderar_resposta(request, resposta_id):
+    if request.method != "POST":
+        return redirect("coordenacao_ciclos")
+    resposta = get_object_or_404(
+        RespostaTexto.objects.filter(
+            avaliacao__ciclo__escola_id=request.user.escola_id,
+            status_moderacao=RespostaTexto.StatusModeracao.PENDENTE,
+        ),
+        pk=resposta_id,
+    )
+    acao = request.POST.get("acao")
+    novo_status = {
+        "aprovar": RespostaTexto.StatusModeracao.APROVADO,
+        "rejeitar": RespostaTexto.StatusModeracao.REJEITADO,
+    }.get(acao)
+    if novo_status:
+        resposta.status_moderacao = novo_status
+        resposta.save(update_fields=("status_moderacao",))
+        messages.success(request, "Comentário moderado sem expor qualquer identificação.")
+    return redirect("coordenacao_ciclos")
 
 
 def _pendencias(user):

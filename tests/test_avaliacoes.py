@@ -17,8 +17,9 @@ from apps.avaliacoes.models import (
     Pergunta,
     RespostaEscala,
     RespostaTexto,
+    ResumoVinculo,
 )
-from apps.avaliacoes.services import criar_ciclo_com_questionario
+from apps.avaliacoes.services import criar_ciclo_com_questionario, gerar_resumos
 from apps.contas.models import Usuario
 from apps.escolas.models import Disciplina, Escola, Matricula, Turma, Vinculo
 
@@ -271,3 +272,174 @@ def test_admin_conteudo_anonimo_e_somente_leitura():
         assert admin_obj.has_delete_permission(request) is False
         assert admin_obj.has_change_permission(request) is False
         assert admin_obj.get_actions(request) == {}
+
+
+def criar_avaliacoes_agregadas(contexto, quantidade=5, status_texto=None):
+    perguntas = list(Pergunta.objects.filter(ciclo=contexto["ciclo"]))
+    for indice in range(quantidade):
+        avaliacao = Avaliacao.objects.create(
+            ciclo=contexto["ciclo"], vinculo=contexto["vinculo"].pk
+        )
+        for pergunta in perguntas:
+            if pergunta.tipo == Pergunta.Tipo.ESCALA_1_5:
+                RespostaEscala.objects.create(
+                    avaliacao=avaliacao, pergunta=pergunta, valor=4
+                )
+            else:
+                RespostaTexto.objects.create(
+                    avaliacao=avaliacao,
+                    pergunta=pergunta,
+                    texto=(f"Comentário {indice}" if indice == 0 else ""),
+                    **(
+                        {"status_moderacao": status_texto}
+                        if status_texto
+                        else {}
+                    ),
+                )
+
+
+def publicar_com_resultado(contexto):
+    criar_avaliacoes_agregadas(contexto)
+    gerar_resumos(contexto["ciclo"])
+    contexto["ciclo"].status = CicloAvaliacao.Status.PUBLICADO
+    contexto["ciclo"].save(update_fields=("status",))
+
+
+def test_coordenacao_encerrar_exibe_adesao_agregada_sem_nomes(client, contexto):
+    Participacao.objects.create(
+        aluno=contexto["aluno"], ciclo=contexto["ciclo"], vinculo=contexto["vinculo"]
+    )
+    client.force_login(contexto["coord"])
+    response = client.get(reverse("coordenacao_ciclos"))
+    content = response.content.decode()
+
+    assert "1 / 1" in content
+    assert ">Aluno<" not in content
+    assert contexto["aluno"].email not in content
+    assert "Encerrar" in content
+
+    encerramento = client.post(
+        reverse("coordenacao_encerrar_ciclo", args=[contexto["ciclo"].pk])
+    )
+    assert encerramento.status_code == 302
+    contexto["ciclo"].refresh_from_db()
+    assert contexto["ciclo"].status == CicloAvaliacao.Status.FECHADO
+
+
+def test_publicacao_e_bloqueada_com_moderacao_pendente(client, contexto):
+    avaliacao = Avaliacao.objects.create(
+        ciclo=contexto["ciclo"], vinculo=contexto["vinculo"].pk
+    )
+    pergunta = Pergunta.objects.filter(ciclo=contexto["ciclo"], tipo=Pergunta.Tipo.TEXTO).first()
+    pendente = RespostaTexto.objects.create(
+        avaliacao=avaliacao, pergunta=pergunta, texto="Comentário para moderar"
+    )
+    contexto["ciclo"].status = CicloAvaliacao.Status.FECHADO
+    contexto["ciclo"].save(update_fields=("status",))
+    client.force_login(contexto["coord"])
+
+    bloqueio = client.post(
+        reverse("coordenacao_publicar_ciclo", args=[contexto["ciclo"].pk])
+    )
+
+    assert bloqueio.status_code == 302
+    contexto["ciclo"].refresh_from_db()
+    assert contexto["ciclo"].status == CicloAvaliacao.Status.FECHADO
+    assert not ResumoVinculo.objects.exists()
+    assert "Comentários para escutar" in client.get(reverse("coordenacao_ciclos")).content.decode()
+
+    moderacao = client.post(
+        reverse("coordenacao_moderar_resposta", args=[pendente.pk]),
+        {"acao": "aprovar"},
+    )
+    assert moderacao.status_code == 302
+    pendente.refresh_from_db()
+    assert pendente.status_moderacao == RespostaTexto.StatusModeracao.APROVADO
+
+
+def test_resultado_abaixo_do_limiar_nao_aparece_para_professor(client, contexto):
+    criar_avaliacoes_agregadas(contexto, quantidade=4)
+    gerar_resumos(contexto["ciclo"])
+    contexto["ciclo"].status = CicloAvaliacao.Status.PUBLICADO
+    contexto["ciclo"].save(update_fields=("status",))
+    client.force_login(contexto["professor"])
+
+    response = client.get(reverse("professor"))
+
+    assert response.status_code == 200
+    assert not ResumoVinculo.objects.exists()
+    assert "participação suficiente" in response.content.decode()
+    assert "Comentário 0" not in response.content.decode()
+
+
+def test_professor_ve_apenas_proprio_vinculo_e_comentarios_aprovados(client, contexto):
+    publicar_com_resultado(contexto)
+    resposta = RespostaTexto.objects.filter(avaliacao__ciclo=contexto["ciclo"]).exclude(texto="").first()
+    resposta.status_moderacao = RespostaTexto.StatusModeracao.APROVADO
+    resposta.save(update_fields=("status_moderacao",))
+    outro_professor = criar_usuario(
+        contexto["escola"], "outro@escuta.example", Usuario.Role.PROFESSOR, "Outro professor"
+    )
+    outro_vinculo = Vinculo.objects.create(
+        professor=outro_professor,
+        turma=contexto["turma"],
+        disciplina=Disciplina.objects.create(escola=contexto["escola"], nome="História"),
+    )
+    ResumoVinculo.objects.create(
+        ciclo=contexto["ciclo"], vinculo_id=outro_vinculo.pk, n_avaliacoes=5,
+        medias_por_dimensao={"clareza": 2.0},
+    )
+    client.force_login(contexto["professor"])
+
+    response = client.get(reverse("professor"))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert "Matemática" in content
+    assert "Comentário 0" in content
+    assert "História" not in content
+    assert "Outro professor" not in content
+    assert 'order_by("?")' in Path("apps/contas/views.py").read_text()
+
+
+def test_ciclo_aberto_ou_fechado_nao_mostra_resultados(client, contexto):
+    criar_avaliacoes_agregadas(contexto)
+    gerar_resumos(contexto["ciclo"])
+    client.force_login(contexto["professor"])
+
+    aberto = client.get(reverse("professor"))
+    assert "Matemática" not in aberto.content.decode()
+
+    contexto["ciclo"].status = CicloAvaliacao.Status.FECHADO
+    contexto["ciclo"].save(update_fields=("status",))
+    fechado = client.get(reverse("professor"))
+    assert "Matemática" not in fechado.content.decode()
+
+
+def test_escola_diferente_nao_acessa_ciclo_nem_resultado(client, contexto):
+    outra_escola = Escola.objects.create(nome="Escola Distante")
+    outra_coord = criar_usuario(
+        outra_escola, "coord@distante.example", Usuario.Role.COORDENACAO, "Outra coordenação"
+    )
+    client.force_login(outra_coord)
+
+    response = client.post(
+        reverse("coordenacao_encerrar_ciclo", args=[contexto["ciclo"].pk])
+    )
+
+    assert response.status_code == 404
+    contexto["ciclo"].refresh_from_db()
+    assert contexto["ciclo"].status == CicloAvaliacao.Status.ABERTO
+
+
+def test_admin_resumo_e_somente_leitura():
+    from apps.avaliacoes.admin import ResumoVinculoAdmin
+
+    site = AdminSite()
+    request = RequestFactory().get("/admin/")
+    request.user = object()
+    admin_obj = ResumoVinculoAdmin(ResumoVinculo, site)
+    assert admin_obj.has_add_permission(request) is False
+    assert admin_obj.has_delete_permission(request) is False
+    assert admin_obj.has_change_permission(request) is False
+    assert admin_obj.get_actions(request) == {}

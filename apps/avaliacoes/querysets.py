@@ -30,3 +30,8 @@ class RespostaEscalaQuerySet(models.QuerySet):
 
 class RespostaTextoQuerySet(models.QuerySet):
     pass
+
+
+class ResumoVinculoQuerySet(models.QuerySet):
+    def para_usuario(self, user):
+        return self.filter(ciclo__escola_id=user.escola_id)

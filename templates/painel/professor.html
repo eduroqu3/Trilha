@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} — trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page dashboard-page professor-page">
+  <div class="site-container dashboard-layout professor-layout">
+    <section class="auth-card dashboard-card">
+      <p class="eyebrow"><span></span>ESCUTA PUBLICADA</p>
+      <h1>{{ titulo }}</h1>
+      <p class="auth-lede">Olá, {{ user.nome }}. Aqui estão os sinais de aprendizagem compartilhados sobre suas aulas.</p>
+      {% if resultados %}
+        <div class="professor-results">
+          {% for resultado in resultados %}
+            <article class="professor-result" aria-labelledby="resultado-{{ forloop.counter }}">
+              <p class="result-kicker">{{ resultado.ciclo.nome }}</p>
+              <h2 id="resultado-{{ forloop.counter }}">{{ resultado.vinculo.disciplina.nome }} · {{ resultado.vinculo.turma.nome }}</h2>
+              <div class="dimension-bars" aria-label="Médias por dimensão">
+                {% for media in resultado.medias %}
+                  <div class="dimension-bar">
+                    <div class="dimension-head"><span>{{ media.dimensao|capfirst }}</span><span aria-hidden="true">{{ media.media|floatformat:1 }}</span></div>
+                    <div class="dimension-track"><span style="width: {{ media.largura }}%;"></span></div>
+                  </div>
+                {% endfor %}
+              </div>
+              {% if resultado.comentarios %}
+                <div class="approved-comments">
+                  <h3>O que foi compartilhado</h3>
+                  <ul class="comment-list">
+                    {% for comentario in resultado.comentarios %}<li>{{ comentario }}</li>{% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-state professor-empty">Ainda não há uma escuta publicada para este espaço. Quando houver participação suficiente e a moderação estiver concluída, os sinais aparecerão aqui com cuidado.</p>
+      {% endif %}
+      {% include "componentes/acoes_conta.html" %}
+    </section>
+  </div>
+</main>
+{% endblock %}

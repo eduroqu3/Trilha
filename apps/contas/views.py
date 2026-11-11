@@ -109,7 +109,52 @@ def aluno(request):
 
 @papel_requerido(Usuario.Role.PROFESSOR)
 def professor(request):
-    return _painel(request, "professor", "Espaço do professor")
+    from apps.avaliacoes.models import CicloAvaliacao, RespostaTexto, ResumoVinculo
+    from apps.escolas.models import Vinculo
+
+    vinculo_ids = Vinculo.objects.para_usuario(request.user).filter(
+        professor_id=request.user.pk
+    ).values_list("pk", flat=True)
+    resumos = ResumoVinculo.objects.para_usuario(request.user).select_related(
+        "ciclo", "vinculo__turma", "vinculo__disciplina"
+    ).filter(
+        ciclo__status=CicloAvaliacao.Status.PUBLICADO,
+        vinculo__in=vinculo_ids,
+    )
+    resultados = []
+    for resumo in resumos:
+        vinculo = resumo.vinculo
+        comentarios = list(
+            RespostaTexto.objects.filter(
+                avaliacao__ciclo=resumo.ciclo,
+                avaliacao__vinculo=resumo.vinculo_id,
+                status_moderacao=RespostaTexto.StatusModeracao.APROVADO,
+            )
+            .exclude(texto="")
+            .order_by("?")
+            .values_list("texto", flat=True)
+        )
+        medias = [
+            {
+                "dimensao": dimensao,
+                "media": media,
+                "largura": round(float(media) * 20),
+            }
+            for dimensao, media in resumo.medias_por_dimensao.items()
+        ]
+        resultados.append(
+            {
+                "ciclo": resumo.ciclo,
+                "vinculo": vinculo,
+                "medias": medias,
+                "comentarios": comentarios,
+            }
+        )
+    return render(
+        request,
+        "painel/professor.html",
+        {"titulo": "Espaço do professor", "papel": "professor", "resultados": resultados},
+    )
 
 
 @papel_requerido(Usuario.Role.COORDENACAO)

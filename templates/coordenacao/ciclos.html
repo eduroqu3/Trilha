@@ -12,9 +12,39 @@
       <section class="auth-card coord-card" aria-labelledby="ciclos-abertos">
         <h2 id="ciclos-abertos">Ciclos da escola</h2>
         {% if ciclos %}
-          <ul class="coord-list">
+          <ul class="coord-list cycle-list">
             {% for ciclo in ciclos %}
-              <li><span>{{ ciclo.nome }}<small>{{ ciclo.get_status_display }}</small></span></li>
+              <li>
+                <div>
+                  <span>{{ ciclo.nome }}</span>
+                  <small>{{ ciclo.get_status_display }}</small>
+                </div>
+                <div class="cycle-actions">
+                  {% if ciclo.status == "ABERTO" %}
+                    <form method="post" action="{% url 'coordenacao_encerrar_ciclo' ciclo.id %}">
+                      {% csrf_token %}
+                      <button class="text-button" type="submit">Encerrar</button>
+                    </form>
+                  {% elif ciclo.status == "FECHADO" %}
+                    <form method="post" action="{% url 'coordenacao_publicar_ciclo' ciclo.id %}">
+                      {% csrf_token %}
+                      <button class="text-button" type="submit">Publicar</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </li>
+              <li class="cycle-detail">
+                <div class="adherence-heading">Adesão agregada por turma</div>
+                {% if ciclo.adesao_por_turma %}
+                  <ul class="adherence-list">
+                    {% for item in ciclo.adesao_por_turma %}
+                      <li><span>{{ item.turma.nome }}</span><span>{{ item.respondidos }} / {{ item.total }}</span></li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p class="empty-state">Ainda não há turmas para acompanhar neste ciclo.</p>
+                {% endif %}
+              </li>
             {% endfor %}
           </ul>
         {% else %}
@@ -32,6 +62,29 @@
         </form>
       </section>
     </div>
+    <section class="auth-card coord-card coord-wide moderation-card" aria-labelledby="moderacao">
+      <h2 id="moderacao">Comentários para escutar</h2>
+      <p class="form-help">Leia cada contribuição sem autoria ou contexto identificável. A ordem é embaralhada.</p>
+      {% if fila_moderacao %}
+        <ul class="moderation-list">
+          {% for resposta in fila_moderacao %}
+            <li>
+              <p>{{ resposta.texto }}</p>
+              <div class="moderation-actions">
+                <form method="post" action="{% url 'coordenacao_moderar_resposta' resposta.id %}">
+                  {% csrf_token %}<button class="text-button" name="acao" value="aprovar" type="submit">Aprovar</button>
+                </form>
+                <form method="post" action="{% url 'coordenacao_moderar_resposta' resposta.id %}">
+                  {% csrf_token %}<button class="text-button" name="acao" value="rejeitar" type="submit">Rejeitar</button>
+                </form>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty-state">A fila de moderação está tranquila por enquanto.</p>
+      {% endif %}
+    </section>
   </div>
 </main>
 {% endblock %}
