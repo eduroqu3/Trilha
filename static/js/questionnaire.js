@@ -4,13 +4,15 @@
 
   const clearInvalidState = (target) => {
     target.classList.remove("is-invalid-focus");
+    target.querySelectorAll(".client-invalid-message").forEach((notice) => notice.remove());
     target.nextElementSibling?.classList.contains("client-invalid-message") &&
       target.nextElementSibling.remove();
   };
 
   const markInvalidState = (target) => {
     target.classList.add("is-invalid-focus");
-    if (target.nextElementSibling?.classList.contains("client-invalid-message")) return;
+    if (target.querySelector(".client-invalid-message") ||
+        target.nextElementSibling?.classList.contains("client-invalid-message")) return;
 
     const notice = document.createElement("p");
     notice.className = "client-invalid-message";
@@ -18,7 +20,21 @@
     notice.textContent = target.classList.contains("scale-field")
       ? "Escolha uma nota de 1 a 5 para continuar."
       : "Confirme este item para continuar.";
-    target.insertAdjacentElement("afterend", notice);
+    const anchor = target.classList.contains("scale-field")
+      ? target.querySelector(".scale-options")
+      : target.classList.contains("text-question")
+        ? target.querySelector("textarea")
+        : target;
+    anchor.insertAdjacentElement("afterend", notice);
+  };
+
+  const clearValidTarget = (control) => {
+    const target = control.closest(".question-field, .consent-field");
+    if (!target) return;
+    const controls = target.matches("input, textarea, select")
+      ? [target]
+      : [...target.querySelectorAll("input, textarea, select")];
+    if (controls.every((field) => field.checkValidity())) clearInvalidState(target);
   };
 
   const scrollToFirstInvalid = () => {
@@ -44,16 +60,8 @@
     if (scrollToFirstInvalid()) event.preventDefault();
   });
 
-  form.addEventListener("input", () => {
-    if (form.checkValidity()) {
-      form.querySelectorAll(".is-invalid-focus").forEach(clearInvalidState);
-    }
-  });
-  form.addEventListener("change", () => {
-    if (form.checkValidity()) {
-      form.querySelectorAll(".is-invalid-focus").forEach(clearInvalidState);
-    }
-  });
+  form.addEventListener("input", (event) => clearValidTarget(event.target));
+  form.addEventListener("change", (event) => clearValidTarget(event.target));
 
   if (form.querySelector(".form-error, .form-alert")) scrollToFirstInvalid();
 })();

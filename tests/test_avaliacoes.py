@@ -144,6 +144,10 @@ def test_questionario_impede_submit_invalido_e_rola_ate_o_campo():
     assert 'block: "center"' in script
     assert "markInvalidState" in script
     assert "client-invalid-message" in script
+    assert 'target.querySelector(".scale-options")' in script
+    assert 'target.querySelector("textarea")' in script
+    assert "clearValidTarget" in script
+    assert "controls.every((field) => field.checkValidity())" in script
 
 
 def test_conclusao_nao_duplica_o_retorno_da_conta(client, contexto):
