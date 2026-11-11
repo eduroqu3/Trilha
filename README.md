@@ -1,6 +1,5 @@
 # TRILHA
 
-[![CI](https://img.shields.io/github/actions/workflow/status/eduroqu3/trilhaDjango/ci.yml?branch=passo6&label=CI)](https://github.com/eduroqu3/trilhaDjango/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-5.2-092E20?logo=django&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?logo=postgresql&logoColor=white)
@@ -25,7 +24,7 @@ O projeto é 100% Django com templates, sessão nativa, PostgreSQL no Supabase e
 - [x] Resultados agregados somente após publicação e participação suficiente.
 - [x] Página pública explicando a proteção e os limites do anonimato.
 - [x] RLS habilitado nas tabelas públicas do Supabase, sem policies criadas pela aplicação.
-- [x] CI com Ruff, pytest em PostgreSQL e verificação do CSS compilado.
+- [x] Validações locais com Ruff, pytest e verificação do CSS compilado.
 - [ ] Editor customizável de perguntas — fora do escopo atual.
 - [ ] Ranking ou comparação entre professores — não será implementado.
 
@@ -91,7 +90,7 @@ $ chmod +x /tmp/tailwindcss
 $ /tmp/tailwindcss -i static/src/input.css -o static/css/app.css --minify
 ```
 
-O arquivo compilado `static/css/app.css` é versionado. O build de CI falha quando ele não corresponde à fonte `static/src/input.css`.
+O arquivo compilado `static/css/app.css` é versionado. Antes de publicar, confirme que ele corresponde à fonte `static/src/input.css`.
 
 ## Como usar
 
@@ -120,7 +119,7 @@ $ python -m pytest
 $ python -m ruff check .
 ```
 
-O workflow de CI executa a suíte contra PostgreSQL. SQLite pode ser usado apenas como banco descartável de validação local rápida; não existe fallback para SQLite nas configurações da aplicação.
+Execute a suíte localmente contra PostgreSQL sempre que possível. SQLite pode ser usado apenas como banco descartável de validação local rápida; não existe fallback para SQLite nas configurações da aplicação.
 
 ## Estrutura de pastas
 
