@@ -4,17 +4,64 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
-class Migration(migrations.Migration):
+def ensure_vinculo_fk(apps, schema_editor):
+    connection = schema_editor.connection
+    if connection.vendor != "postgresql":
+        return
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT 1
+            FROM pg_constraint
+            WHERE conname = 'avaliacoes_resumovinculo_vinculo_id_fkey'
+            """
+        )
+        if cursor.fetchone():
+            return
+        cursor.execute(
+            """
+            ALTER TABLE avaliacoes_resumovinculo
+            ADD CONSTRAINT avaliacoes_resumovinculo_vinculo_id_fkey
+            FOREIGN KEY (vinculo_id)
+            REFERENCES escolas_vinculo(id)
+            DEFERRABLE INITIALLY DEFERRED
+            """
+        )
 
+
+def remove_vinculo_fk(apps, schema_editor):
+    if schema_editor.connection.vendor == "postgresql":
+        schema_editor.execute(
+            """
+            ALTER TABLE avaliacoes_resumovinculo
+            DROP CONSTRAINT IF EXISTS avaliacoes_resumovinculo_vinculo_id_fkey
+            """
+        )
+
+
+class Migration(migrations.Migration):
     dependencies = [  # noqa: RUF012
-        ('avaliacoes', '0002_resumovinculo'),
-        ('escolas', '0002_disciplina_turma_matricula_vinculo_and_more'),
+        ("avaliacoes", "0002_resumovinculo"),
+        ("escolas", "0002_disciplina_turma_matricula_vinculo_and_more"),
     ]
 
     operations = [  # noqa: RUF012
-        migrations.AlterField(
-            model_name='resumovinculo',
-            name='vinculo',
-            field=models.ForeignKey(db_column='vinculo_id', on_delete=django.db.models.deletion.PROTECT, related_name='resumos_avaliacao', to='escolas.vinculo', verbose_name='vínculo'),
-        ),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(ensure_vinculo_fk, remove_vinculo_fk),
+            ],
+            state_operations=[
+                migrations.AlterField(
+                    model_name="resumovinculo",
+                    name="vinculo",
+                    field=models.ForeignKey(
+                        db_column="vinculo_id",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="resumos_avaliacao",
+                        to="escolas.vinculo",
+                        verbose_name="vínculo",
+                    ),
+                ),
+            ],
+        )
     ]

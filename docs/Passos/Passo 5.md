@@ -10,6 +10,7 @@
 - [x] Registrar `ResumoVinculo` no Admin como somente leitura e sem exclusão em massa.
 - [x] Testar publicação bloqueada por moderação pendente, limiar mínimo, ciclo aberto/fechado sem resultados, isolamento entre professores e escolas, ausência de nomes na coordenação, moderação e integridade do resumo.
 - [x] Aplicar a migração do resumo e a relação com `Vinculo` no Supabase `trilha-dev`; habilitar RLS novamente em todas as tabelas públicas, sem policies. A verificação confirmou `avaliacoes_resumovinculo` com RLS ativo e suas FKs para ciclo e vínculo.
+- [x] Tornar as migrações `0002_resumovinculo` e `0003_alter_resumovinculo_vinculo` idempotentes: em um banco novo elas criam a estrutura; em um banco que já possui a tabela e a FK, apenas reconhecem a estrutura e registram o estado Django, sem tentar recriar a relação.
 
 ## Validação local registrada
 
@@ -18,6 +19,7 @@
 - `python -m ruff check .`: passou na rodada final.
 - `python manage.py migrate --noinput`: aplicado em banco SQLite temporário.
 - `python manage.py makemigrations --check --dry-run`: nenhuma migração pendente.
+- Migração em banco novo e migração com `avaliacoes_resumovinculo` previamente existente: ambas concluídas sem `DuplicateTable`.
 - `python manage.py aplicar_rls`: recusado no SQLite com a mensagem esperada de que requer PostgreSQL; no Supabase, a operação equivalente do comando foi executada e verificada após a migração.
 
 ## Observação de execução
