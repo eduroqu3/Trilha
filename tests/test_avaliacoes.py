@@ -150,6 +150,7 @@ def test_questionario_impede_submit_invalido_e_rola_ate_o_campo():
     assert "controls.every((field) => field.checkValidity())" in script
     assert "is-invalid-focus" not in script
     assert "is-invalid-focus" not in Path("static/src/input.css").read_text()
+    assert ".consent-field + .client-invalid-message" in Path("static/src/input.css").read_text()
 
 
 def test_conclusao_nao_duplica_o_retorno_da_conta(client, contexto):
