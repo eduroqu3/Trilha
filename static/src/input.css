@@ -419,8 +419,6 @@ h1, h2, blockquote { margin: 0; font-family: var(--serif); font-weight: 400; let
 .text-question textarea:focus { border-color: var(--deep); outline: 3px solid var(--mustard); outline-offset: 4px; }
 .consent-field { display: flex; align-items: flex-start; gap: 11px; margin: 25px 0; padding: 15px 16px; color: var(--dark); background: var(--pale); font-size: 12px; line-height: 1.6; cursor: pointer; }
 .consent-field input { flex: 0 0 auto; width: 17px; height: 17px; margin-top: 2px; accent-color: var(--deep); }
-.question-field.is-invalid-focus { border-top: 2px solid #b64d42; }
-.consent-field.is-invalid-focus { border: 1px solid #b64d42; border-left-width: 3px; }
 .client-invalid-message { margin: 8px 0 0; color: #9d4d37; font-size: 11px; font-weight: 700; line-height: 1.5; }
 .honeypot { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden !important; }
 .site-messages { padding: 9px 20px; color: var(--white); background: var(--deep); font-size: 12px; text-align: center; transition: opacity .3s ease, transform .3s ease; }

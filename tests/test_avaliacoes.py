@@ -148,6 +148,8 @@ def test_questionario_impede_submit_invalido_e_rola_ate_o_campo():
     assert 'target.querySelector("textarea")' in script
     assert "clearValidTarget" in script
     assert "controls.every((field) => field.checkValidity())" in script
+    assert "is-invalid-focus" not in script
+    assert "is-invalid-focus" not in Path("static/src/input.css").read_text()
 
 
 def test_conclusao_nao_duplica_o_retorno_da_conta(client, contexto):

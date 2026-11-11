@@ -3,14 +3,12 @@
   if (!form) return;
 
   const clearInvalidState = (target) => {
-    target.classList.remove("is-invalid-focus");
     target.querySelectorAll(".client-invalid-message").forEach((notice) => notice.remove());
     target.nextElementSibling?.classList.contains("client-invalid-message") &&
       target.nextElementSibling.remove();
   };
 
   const markInvalidState = (target) => {
-    target.classList.add("is-invalid-focus");
     if (target.querySelector(".client-invalid-message") ||
         target.nextElementSibling?.classList.contains("client-invalid-message")) return;
 
