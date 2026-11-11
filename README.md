@@ -9,9 +9,9 @@
 
 ## Sobre o projeto
 
-A TRILHA é uma plataforma Django de escuta pedagógica. Ela permite que escolas organizem ciclos de avaliação, estudantes compartilhem percepções sobre suas aulas e professores recebam sinais agregados para orientar conversas e melhorias, sem rankings punitivos e sem identificar autores de respostas.
+A TRILHA é uma plataforma Django de escuta pedagógica. Escolas organizam ciclos de avaliação, estudantes compartilham percepções sobre suas aulas e professores recebem sinais agregados para orientar conversas e melhorias, sem rankings punitivos e sem identificar autores de respostas.
 
-O projeto é 100% Django com templates, sessão nativa, PostgreSQL no Supabase e assets locais. As regras de anonimato por arquitetura e a identidade visual estão definidas, respectivamente, em [`docs/Contexto Fixo.md`](docs/Contexto%20Fixo.md) e [`docs/Design Fixo.md`](docs/Design%20Fixo.md).
+O projeto usa templates Django, sessões nativas, PostgreSQL no Supabase e assets locais. As regras de anonimato e a identidade visual estão definidas em [`docs/Contexto Fixo.md`](docs/Contexto%20Fixo.md) e [`docs/Design Fixo.md`](docs/Design%20Fixo.md).
 
 ## Funcionalidades
 
@@ -24,7 +24,7 @@ O projeto é 100% Django com templates, sessão nativa, PostgreSQL no Supabase e
 - [x] Resultados agregados somente após publicação e participação suficiente.
 - [x] Página pública explicando a proteção e os limites do anonimato.
 - [x] RLS habilitado nas tabelas públicas do Supabase, sem policies criadas pela aplicação.
-- [x] Validações locais com Ruff, pytest e verificação do CSS compilado.
+- [x] Testes de instalação, fluxo integrado, permissões, isolamento, anonimato, acessibilidade e produção local.
 - [ ] Editor customizável de perguntas — fora do escopo atual.
 - [ ] Ranking ou comparação entre professores — não será implementado.
 
@@ -34,7 +34,7 @@ O projeto é 100% Django com templates, sessão nativa, PostgreSQL no Supabase e
 | --- | --- |
 | Linguagem | Python 3.12 |
 | Framework | Django 5.2 |
-| Banco | PostgreSQL 17 no Supabase |
+| Banco | PostgreSQL no Supabase |
 | Configuração | django-environ |
 | Sessões e autenticação | Django Auth e sessões nativas |
 | CSS | Tailwind CSS v4.3.5 via CLI standalone |
@@ -42,89 +42,90 @@ O projeto é 100% Django com templates, sessão nativa, PostgreSQL no Supabase e
 | Testes | pytest, pytest-django |
 | Qualidade | Ruff |
 
-Não há React, Node.js, Django REST Framework, JWT ou dependência da infraestrutura da Manus no código da aplicação.
+Não há React, Node.js, Django REST Framework, JWT ou dependência de infraestrutura específica da plataforma no código da aplicação.
 
-## Pré-requisitos e instalação
+## Pré-requisitos e instalação rápida
 
-Instale Python 3.12, Git, PostgreSQL acessível pelo Supabase e o CLI standalone do Tailwind CSS v4.3.5. Node.js não é necessário. Para executar os testes em CI, o workflow também utiliza um serviço PostgreSQL temporário.
-
-```bash
-# Clone o repositório e selecione a branch atual
-$ git clone --branch passo6 https://github.com/eduroqu3/trilhaDjango.git
-$ cd trilhaDjango
-
-# Crie e ative o ambiente virtual
-$ python3.12 -m venv .venv
-$ source .venv/bin/activate
-
-# Instale as dependências fixadas
-$ python -m pip install -r requirements.txt
-
-# Crie a configuração local, sem versioná-la
-$ cp .env.example .env
-```
-
-Edite `.env` localmente com `SECRET_KEY`, `DATABASE_URL`, `ALLOWED_HOSTS` e `CSRF_TRUSTED_ORIGINS`. `DATABASE_URL` é obrigatória e deve apontar para o PostgreSQL do projeto `trilha-dev`, com `sslmode=require`. Nunca cole o conteúdo de `.env` em commits, issues, logs ou mensagens.
-
-Para o ambiente de referência, siga `docs/Contexto Fixo.md` e use o Session pooler do Supabase. Em uma implantação web com muitos workers, o Transaction pooler pode ser preferível; nesse caso, valide o comportamento do Psycopg, prepared statements e o valor de `CONN_MAX_AGE` antes da publicação.
+Instale Python 3.12, Git, acesso a um PostgreSQL do Supabase e o CLI standalone do Tailwind CSS v4.3.5. Node.js não é necessário.
 
 ```bash
-# Valide a configuração e aplique as migrações
-$ python manage.py check --database default
-$ python manage.py migrate
-$ python manage.py aplicar_rls
-
-# Inicie o servidor de desenvolvimento
-$ python manage.py runserver
+git clone --branch passo7 https://github.com/eduroqu3/trilhaDjango.git
+cd trilhaDjango
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
 ```
 
-Depois de qualquer `migrate` em um banco PostgreSQL, execute novamente `python manage.py aplicar_rls`. O comando habilita Row Level Security em todas as tabelas públicas e não cria policies. A Data API do Supabase e as chaves `anon`, `publishable` e `service_role` não são usadas pela aplicação.
+No Windows PowerShell, use:
 
-### Compilar o CSS
+```powershell
+git clone --branch passo7 https://github.com/eduroqu3/trilhaDjango.git
+Set-Location trilhaDjango
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+```
 
-Baixe o CLI standalone v4.3.5 apropriado ao seu sistema na [página oficial de releases](https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.3.5). No Linux x86_64:
+Preencha `.env` localmente com uma `SECRET_KEY` longa, `DATABASE_URL`, `ALLOWED_HOSTS` e `CSRF_TRUSTED_ORIGINS`. `DATABASE_URL` é obrigatória; não existe fallback para SQLite. Use o Session pooler do Supabase com `sslmode=require`. A aplicação não usa chaves `anon`, `publishable` ou `service_role`.
+
+Para o passo a passo completo, incluindo criação do projeto Supabase, consulte [`docs/INSTALACAO.md`](docs/INSTALACAO.md). Para produção, consulte [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
+## Comandos principais
 
 ```bash
-$ curl -fL https://github.com/tailwindlabs/tailwindcss/releases/download/v4.3.5/tailwindcss-linux-x64 -o /tmp/tailwindcss
-$ chmod +x /tmp/tailwindcss
-$ /tmp/tailwindcss -i static/src/input.css -o static/css/app.css --minify
+python manage.py check
+python manage.py migrate
+python manage.py aplicar_rls
+python manage.py runserver
 ```
 
-O arquivo compilado `static/css/app.css` é versionado. Antes de publicar, confirme que ele corresponde à fonte `static/src/input.css`.
+Em desenvolvimento autorizado, `python manage.py seed_demo` cria dados fictícios. O comando é bloqueado quando `DEBUG=False` e `ALLOW_SEED_DEMO` não está habilitado; nunca o use em um banco de produção com dados reais.
+
+## Compilar o CSS
+
+Baixe o CLI standalone v4.3.5 apropriado ao seu sistema na [página oficial de releases](https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.3.5). Exemplo Linux x86_64:
+
+```bash
+curl -fL https://github.com/tailwindlabs/tailwindcss/releases/download/v4.3.5/tailwindcss-linux-x64 -o /tmp/tailwindcss
+chmod +x /tmp/tailwindcss
+/tmp/tailwindcss -i tailwind/input.css -o static/css/app.css --minify
+```
+
+A fonte fica em `tailwind/input.css`, fora da árvore pública de assets. O arquivo compilado `static/css/app.css` é versionado e é o único CSS coletado para produção.
 
 ## Como usar
 
-O fluxo principal começa com o cadastro da escola. A coordenação cria a estrutura escolar, cadastra ou importa pessoas, cria vínculos e abre um ciclo. Estudantes respondem somente sobre aulas de suas turmas; a tela de agradecimento não transporta identificadores da avaliação. Depois do encerramento e da moderação, a coordenação publica o ciclo. Professores veem apenas resultados agregados elegíveis dos próprios vínculos.
+O fluxo principal começa em `/cadastrar-escola/`. A coordenação cria turmas, disciplinas, professores, alunos, matrículas e vínculos; abre um ciclo; estudantes avaliam apenas aulas de suas turmas; a coordenação encerra, modera comentários e publica; professores veem somente resultados agregados elegíveis dos próprios vínculos.
 
-Rotas principais para testar manualmente:
+Rotas principais:
 
 | Rota | Uso |
 | --- | --- |
 | `/` | Landing institucional |
 | `/anonimato/` | Explicação pública sobre anonimato |
-| `/cadastrar-escola/` | Cadastro do primeiro acesso da escola |
+| `/cadastrar-escola/` | Cadastro da escola e primeiro acesso |
 | `/entrar/` | Login por e-mail |
-| `/coordenacao/` | Painel e navegação da coordenação |
+| `/coordenacao/` | Painel da coordenação |
 | `/aluno/` | Pendências do estudante |
 | `/professor/` | Resultados agregados do professor |
 | `/admin/` | Administração Django, quando habilitada |
 
-Em desenvolvimento autorizado, `python manage.py seed_demo` cria dados fictícios para testar o fluxo. O comando só funciona com `DEBUG=True` ou `ALLOW_SEED_DEMO=true` e não deve ser habilitado em produção.
-
 ## Verificações
 
 ```bash
-$ python manage.py check
-$ python -m pytest
-$ python -m ruff check .
+python manage.py check
+python -m pytest
+python -m ruff check .
 ```
 
-Execute a suíte localmente contra PostgreSQL sempre que possível. SQLite pode ser usado apenas como banco descartável de validação local rápida; não existe fallback para SQLite nas configurações da aplicação.
+A rodada do Passo 7 também verificou instalação em ambiente virtual novo, migrações no Supabase, RLS nas 22 tabelas públicas, `seed_demo`, fluxo integrado completo, limiar abaixo do mínimo, isolamento entre escolas, auditoria de anonimato, `collectstatic`, Gunicorn, build do Tailwind e acessibilidade básica. O relatório detalhado está em [`docs/Passos/Passo 7.md`](docs/Passos/Passo%207.md).
 
 ## Estrutura de pastas
 
 ```text
-trilha/
+trilhaDjango/
 ├── manage.py
 ├── requirements.txt
 ├── .env.example / .gitignore / README.md
@@ -133,18 +134,12 @@ trilha/
 │   ├── contas/              # usuário, login, papéis e autenticação
 │   ├── escolas/             # escola, turma, disciplina, matrícula e vínculo
 │   └── avaliacoes/          # ciclos, perguntas, respostas e resultados
-├── templates/
-│   ├── base.html / landing.html / anonimato.html
-│   ├── componentes/         # componentes efetivamente reutilizados
-│   ├── contas/              # cadastro, login e troca de senha
-│   ├── aluno/               # dashboard, pendências, avaliação e agradecimento
-│   ├── professor/           # dashboard com resultados agregados
-│   └── coordenacao/         # dashboard e gestão escolar
+├── tailwind/input.css       # fonte do Tailwind, não servida diretamente
+├── templates/               # base, contas, aluno, professor e coordenação
 ├── static/
-│   ├── src/input.css        # fonte do Tailwind, não servida diretamente
 │   ├── css/app.css          # CSS compilado e versionado
-│   ├── js/                  # scripts pequenos de interface
-│   └── img/                 # logo oficial e ilustração local
+│   ├── js/                  # scripts de interface
+│   └── img/                 # logo e ilustrações locais
 ├── tests/                   # pytest-django
 └── docs/                    # contexto, design, passos, instalação e deploy
 ```
@@ -155,5 +150,5 @@ trilha/
 - [`docs/Design Fixo.md`](docs/Design%20Fixo.md): identidade visual e acessibilidade.
 - [`docs/ANONIMATO.md`](docs/ANONIMATO.md): proteção e limites honestos.
 - [`docs/INSTALACAO.md`](docs/INSTALACAO.md): instalação local detalhada.
-- [`docs/DEPLOY.md`](docs/DEPLOY.md): checklist de produção e Supabase.
+- [`docs/DEPLOY.md`](docs/DEPLOY.md): deploy em um único Web Service Python.
 - [`docs/Passos/`](docs/Passos/): histórico dos passos concluídos.
