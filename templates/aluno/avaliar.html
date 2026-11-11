@@ -7,12 +7,10 @@
 <main id="conteudo" class="auth-page coord-page">
   <div class="site-container coord-layout">
     {% include "componentes/acoes_conta.html" %}
-    <div class="questionnaire-intro">
-      <p class="eyebrow"><span></span>COMPARTILHAR EXPERIÊNCIA</p>
-      <h1>Uma conversa sobre a aula</h1>
-      <p class="auth-lede">{{ vinculo.disciplina.nome }} · {{ vinculo.professor.nome }} · {{ vinculo.turma.nome }}</p>
-      <div class="auth-quote anonymity-callout" role="note"><span aria-hidden="true">✦</span> Sua resposta é anônima. Não escreva seu nome nem informações que possam revelar sua identidade.</div>
-    </div>
+    <p class="eyebrow"><span></span>COMPARTILHAR EXPERIÊNCIA</p>
+    <h1>Uma conversa sobre a aula</h1>
+    <p class="auth-lede">{{ vinculo.disciplina.nome }} · {{ vinculo.professor.nome }} · {{ vinculo.turma.nome }}</p>
+    <div class="auth-quote anonymity-callout" role="note"><span aria-hidden="true">✦</span> Sua resposta é anônima. Não escreva seu nome nem informações que possam revelar sua identidade.</div>
     <section class="auth-card coord-card coord-wide questionnaire-card" aria-labelledby="questionario">
       <h2 id="questionario">Questionário</h2>
       {% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}

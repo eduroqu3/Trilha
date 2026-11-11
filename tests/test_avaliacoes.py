@@ -127,7 +127,6 @@ def test_questionario_tem_escala_visual_e_acoes_de_conta(client, contexto):
     content = response.content.decode()
 
     assert response.status_code == 200
-    assert "questionnaire-intro" in content
     assert "questionnaire-card" in content
     assert "scale-options" in content
     assert "consent-field" in content
@@ -143,6 +142,8 @@ def test_questionario_impede_submit_invalido_e_rola_ate_o_campo():
     assert "event.preventDefault()" in script
     assert "scrollIntoView" in script
     assert 'block: "center"' in script
+    assert "markInvalidState" in script
+    assert "client-invalid-message" in script
 
 
 def test_conclusao_nao_duplica_o_retorno_da_conta(client, contexto):

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from django.core.cache import cache
 from django.urls import reverse
@@ -285,3 +287,11 @@ def test_login_do_aluno_mostra_acesso_a_troca_de_senha(client, escola):
     assert login_response.url == reverse("aluno")
     assert page.status_code == 200
     assert "Trocar senha" in page.content.decode()
+
+
+def test_avisos_globais_tem_dismiss_automatico():
+    script = Path("static/js/messages.js").read_text()
+
+    assert "site-messages" in script
+    assert "3500" in script
+    assert "is-hidden" in script
