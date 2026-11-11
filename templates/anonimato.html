@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Anonimato — trilha{% endblock %}
+{% block description %}Como a trilha protege a escuta dos estudantes e quais são os limites honestos dessa proteção.{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<div class="site-container auth-topbar"><a class="auth-back" href="{% url 'home' %}"><span aria-hidden="true">←</span> Voltar ao início</a></div>
+<main id="conteudo" class="auth-page coord-page anonymity-page">
+  <div class="site-container coord-layout">
+    <a class="brand auth-brand" href="{% url 'home' %}" aria-label="trilha — início"><img class="auth-logo" src="{% static 'img/logo-completo.png' %}" alt="trilha"></a>
+    <p class="eyebrow"><span></span>ESCUTA COM CUIDADO</p>
+    <h1>Anonimato por <em>arquitetura.</em></h1>
+    <p class="auth-lede">A escuta precisa ser honesta para ajudar uma comunidade a aprender. Por isso, a trilha separa o registro de participação do conteúdo que foi compartilhado.</p>
+    <div class="anonymity-grid">
+      <section class="auth-card coord-card" aria-labelledby="protegido">
+        <h2 id="protegido">O que é protegido</h2>
+        <ul class="principle-list">
+          <li><span aria-hidden="true">◆</span><span>O sistema registra que uma pessoa participou, mas o conteúdo da resposta fica em um registro separado.</span></li>
+          <li><span aria-hidden="true">◆</span><span>A avaliação e seus comentários não guardam uma relação, hash ou chave que leve ao estudante.</span></li>
+          <li><span aria-hidden="true">◆</span><span>A tela de confirmação não carrega nome, e-mail, identificador da avaliação ou outro dado ligável.</span></li>
+          <li><span aria-hidden="true">◆</span><span>Os resultados aparecem apenas para ciclos publicados e vínculos que alcançam o limiar da escola.</span></li>
+        </ul>
+      </section>
+      <section class="auth-card coord-card" aria-labelledby="limites">
+        <h2 id="limites">Limites honestos</h2>
+        <ul class="principle-list">
+          <li><span aria-hidden="true">◆</span><span>O limiar mínimo reduz o risco, mas não transforma uma turma pequena em um grupo anônimo por completo.</span></li>
+          <li><span aria-hidden="true">◆</span><span>Uma pessoa pode se reconhecer pelo próprio estilo de escrita ou por detalhes que escolheu contar no comentário.</span></li>
+          <li><span aria-hidden="true">◆</span><span>Por isso, não escreva seu nome, fatos muito específicos ou informações que revelem quem você é.</span></li>
+          <li><span aria-hidden="true">◆</span><span>A coordenação deve ler e moderar os comentários com cuidado, sem procurar autoria ou contexto individual.</span></li>
+        </ul>
+      </section>
+    </div>
+    <p class="auth-quote anonymity-note"><span aria-hidden="true">✳</span> Anonimato é uma responsabilidade compartilhada: a arquitetura protege o caminho, e cada pessoa cuida do que escolhe escrever.</p>
+  </div>
+</main>
+{% endblock %}

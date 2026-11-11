@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.landing_page, name="home"),
+    path("anonimato/", views.anonimato, name="anonimato"),
     path("coordenacao/", include("apps.escolas.urls")),
     path("", include("apps.avaliacoes.urls")),
     path("", include("apps.contas.urls")),

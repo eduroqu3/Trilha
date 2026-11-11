@@ -58,11 +58,12 @@ TEMPLATES = [
                 "apps.contas.context_processors.navegacao",
             ],
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+# DATABASE_URL is intentionally mandatory: the system database is PostgreSQL.
 DATABASES = {
     "default": {
         **env.db_url("DATABASE_URL"),
@@ -111,7 +112,22 @@ CSRF_COOKIE_SAMESITE = "None" if PUBLIC_HTTPS else "Lax"
 SESSION_COOKIE_HTTPONLY = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
-X_FRAME_OPTIONS = "ALLOWALL" if DEBUG and PUBLIC_HTTPS else "DENY"
+X_FRAME_OPTIONS = "DENY"
+if DEBUG and PUBLIC_HTTPS:
+    X_FRAME_OPTIONS = "ALLOWALL"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True

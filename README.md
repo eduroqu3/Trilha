@@ -71,6 +71,7 @@ manage.py                         comandos Django
 config/                            settings, URLs, views, WSGI e comandos
   management/commands/aplicar_rls.py
 templates/base.html                metadados, fontes, CSS e estrutura comum
+templates/anonimato.html           explicação pública sobre anonimato e limites
 templates/landing.html             conteúdo institucional
 templates/componentes/              componentes de formulário e identidade visual
 templates/contas/                   cadastro, login e troca de senha
@@ -84,6 +85,8 @@ tests/                             testes pytest-django
 .env.example                       exemplo sem credenciais
 docs/Contexto Fixo.md              stack, anonimato e decisões do MVP
 docs/Design Fixo.md                identidade visual e diretrizes
+docs/ANONIMATO.md                  proteção e limites honestos do anonimato
+docs/Passos/Passo 6.md             verificação de anonimato e CI
 docs/Passos/Passo 3.md             checklist da estrutura escolar
 requirements.txt                   dependências Python fixadas
 ```
