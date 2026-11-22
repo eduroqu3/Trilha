@@ -62,3 +62,24 @@ Decisões do MVP:
   do schema public, sem policies, e Data API desativada. As chaves anon/publishable
   e service_role NÃO são usadas nem gravadas em lugar nenhum.
 - Comandos Python sempre como "python -m pytest" e "python -m ruff".
+
+Regras da v2 (valem para TODA tela e consulta nova):
+1. Sem ranking: nenhuma tela ordena professores, turmas ou disciplinas por nota,
+   nem coloca professores lado a lado em comparação. Listas em ordem alfabética.
+2. Limiar em tudo: qualquer número, gráfico ou comentário só aparece se
+   n_avaliacoes >= escola.limiar_minimo NAQUELE recorte (professor, vínculo,
+   disciplina, turma ou ciclo).
+3. Supressão complementar: se um recorte é ocultado por n pequeno, nenhum
+   total ou recorte vizinho pode permitir calculá-lo por subtração. Na dúvida,
+   oculte o detalhamento e mostre só o total.
+4. Sem cruzamentos: no máximo UM recorte por vez (por professor, ou por turma, ou
+   por disciplina). Nenhum filtro combinado nem atributo do aluno.
+5. Nenhuma pergunta de questionário pode coletar dado pessoal ou demográfico
+   (nome, gênero, idade, raça, bairro, etc.). Perguntas de texto sempre trazem
+   o aviso de não se identificar.
+6. Nada que ligue Avaliacao a Usuario, e nenhum timestamp em Avaliacao e respostas.
+   Qualquer migração que toque nesses models exige o teste de anonimato passando.
+7. Linguagem de escuta, nunca de veredito: "pontos para conversar", não
+   "pontos fracos"; sem vermelho/verde como julgamento; sem "nota final".
+   Todo gráfico traz o aviso "avaliação é ponto de partida, não veredito".
+8. Evolução só do próprio professor entre ciclos, nunca comparação entre professores.
