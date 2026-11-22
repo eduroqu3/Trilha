@@ -1,28 +1,82 @@
 {% extends "base.html" %}
-{% block title %}Turmas — Trilha{% endblock %}
+{% block title %}Turmas e Disciplinas — Trilha{% endblock %}
 {% block content %}
 <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 <main id="conteudo" class="auth-page coord-page">
   <div class="site-container coord-layout">
     <p class="eyebrow"><span></span>ORGANIZAR O CAMINHO</p>
-    <h1>Turmas</h1>
-    <p class="auth-lede">Crie as turmas que fazem parte da sua escola. Cada turma fica disponível apenas para esta escola.</p>
+    <h1>Turmas e Disciplinas</h1>
+    <p class="auth-lede">Gerencie as turmas e disciplinas da sua escola em um só lugar para estruturar os vínculos pedagógicos.</p>
     {% include "coordenacao/_nav.html" %}
+
+    <!-- Seção de Turmas -->
     <div class="coord-columns">
       <section class="auth-card coord-card" aria-labelledby="lista-turmas">
         <h2 id="lista-turmas">Turmas cadastradas</h2>
         {% if turmas %}
           <ul class="coord-list">
             {% for turma in turmas %}
-              <li><span>{{ turma.nome }} <small>{{ turma.ano_letivo }}</small></span><form method="post" action="{% url 'remover_turma' turma.pk %}">{% csrf_token %}<button class="text-button" type="submit">Remover</button></form></li>
+              <li>
+                <span>{{ turma.nome }} <small>{{ turma.ano_letivo }}</small></span>
+                <form method="post" action="{% url 'remover_turma' turma.pk %}">
+                  {% csrf_token %}
+                  <button class="text-button" type="submit">Remover</button>
+                </form>
+              </li>
             {% endfor %}
           </ul>
-        {% else %}<p class="empty-state">Ainda não há turmas cadastradas.</p>{% endif %}
+        {% else %}
+          <p class="empty-state">Ainda não há turmas cadastradas.</p>
+        {% endif %}
       </section>
+
       <section class="auth-card coord-card" aria-labelledby="nova-turma">
         <h2 id="nova-turma">Nova turma</h2>
-        {% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}
-        <form method="post" class="coord-form" novalidate>{% csrf_token %}{% include "componentes/campo.html" with campo=form.nome %}{% include "componentes/campo.html" with campo=form.ano_letivo %}<button class="button button-primary" type="submit">Criar turma <span aria-hidden="true">↗</span></button></form>
+        {% if form_turma.non_field_errors %}
+          <div class="form-alert" role="alert">{{ form_turma.non_field_errors }}</div>
+        {% endif %}
+        <form method="post" class="coord-form" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="criar_turma" value="1">
+          {% include "componentes/campo.html" with campo=form_turma.nome %}
+          {% include "componentes/campo.html" with campo=form_turma.ano_letivo %}
+          <button class="button button-primary" type="submit">Criar turma <span aria-hidden="true">↗</span></button>
+        </form>
+      </section>
+    </div>
+
+    <!-- Seção de Disciplinas -->
+    <div class="coord-columns" style="margin-top: 24px;">
+      <section class="auth-card coord-card" aria-labelledby="lista-disciplinas">
+        <h2 id="lista-disciplinas">Disciplinas cadastradas</h2>
+        {% if disciplinas %}
+          <ul class="coord-list">
+            {% for disciplina in disciplinas %}
+              <li>
+                <span>{{ disciplina.nome }}</span>
+                <form method="post" action="{% url 'remover_disciplina' disciplina.pk %}">
+                  {% csrf_token %}
+                  <button class="text-button" type="submit">Remover</button>
+                </form>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="empty-state">Ainda não há disciplinas cadastradas.</p>
+        {% endif %}
+      </section>
+
+      <section class="auth-card coord-card" aria-labelledby="nova-disciplina">
+        <h2 id="nova-disciplina">Nova disciplina</h2>
+        {% if form_disciplina.non_field_errors %}
+          <div class="form-alert" role="alert">{{ form_disciplina.non_field_errors }}</div>
+        {% endif %}
+        <form method="post" class="coord-form" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="criar_disciplina" value="1">
+          {% include "componentes/campo.html" with campo=form_disciplina.nome %}
+          <button class="button button-primary" type="submit">Criar disciplina <span aria-hidden="true">↗</span></button>
+        </form>
       </section>
     </div>
   </div>

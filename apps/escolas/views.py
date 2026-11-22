@@ -39,21 +39,60 @@ def _resultado_importacao(request, tipo, resultado):
 
 @papel_requerido(COORDENACAO)
 def turmas(request):
-    form = TurmaForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        turma = form.save(commit=False)
-        turma.escola = request.user.escola
-        try:
-            turma.save()
-        except IntegrityError:
-            form.add_error(None, "Essa turma já existe para este ano letivo.")
+    form_turma = TurmaForm(prefix="turma")
+    form_disciplina = DisciplinaForm(prefix="disciplina")
+
+    if request.method == "POST":
+        if "criar_turma" in request.POST:
+            form_turma = TurmaForm(request.POST, prefix="turma")
+            if form_turma.is_valid():
+                turma = form_turma.save(commit=False)
+                turma.escola = request.user.escola
+                try:
+                    turma.save()
+                except IntegrityError:
+                    form_turma.add_error(None, "Essa turma já existe para este ano letivo.")
+                else:
+                    messages.success(request, "Turma criada com sucesso.")
+                    return redirect("coordenacao_turmas")
+        elif "criar_disciplina" in request.POST:
+            form_disciplina = DisciplinaForm(request.POST, prefix="disciplina")
+            if form_disciplina.is_valid():
+                disciplina = form_disciplina.save(commit=False)
+                disciplina.escola = request.user.escola
+                try:
+                    disciplina.save()
+                except IntegrityError:
+                    form_disciplina.add_error(None, "Essa disciplina já existe para esta escola.")
+                else:
+                    messages.success(request, "Disciplina criada com sucesso.")
+                    return redirect("coordenacao_turmas")
         else:
-            messages.success(request, "Turma criada com sucesso.")
-            return redirect("coordenacao_turmas")
+            # Suporte para submissões diretas sem prefixo (como em testes antigos)
+            form_fallback = TurmaForm(request.POST)
+            if form_fallback.is_valid():
+                turma = form_fallback.save(commit=False)
+                turma.escola = request.user.escola
+                try:
+                    turma.save()
+                except IntegrityError:
+                    form_turma.add_error(None, "Essa turma já existe para este ano letivo.")
+                else:
+                    messages.success(request, "Turma criada com sucesso.")
+                    return redirect("coordenacao_turmas")
+            else:
+                form_turma = form_fallback
+
     return render(
         request,
         "coordenacao/turmas.html",
-        {"form": form, "turmas": Turma.objects.para_usuario(request.user)},
+        {
+            "form": form_turma,
+            "form_turma": form_turma,
+            "form_disciplina": form_disciplina,
+            "turmas": Turma.objects.para_usuario(request.user),
+            "disciplinas": Disciplina.objects.para_usuario(request.user),
+        },
     )
 
 
@@ -68,25 +107,19 @@ def remover_turma(request, pk):
 
 @papel_requerido(COORDENACAO)
 def disciplinas(request):
-    form = DisciplinaForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        disciplina = form.save(commit=False)
-        disciplina.escola = request.user.escola
-        try:
-            disciplina.save()
-        except IntegrityError:
-            form.add_error(None, "Essa disciplina já existe para esta escola.")
-        else:
-            messages.success(request, "Disciplina criada com sucesso.")
-            return redirect("coordenacao_disciplinas")
-    return render(
-        request,
-        "coordenacao/disciplinas.html",
-        {
-            "form": form,
-            "disciplinas": Disciplina.objects.para_usuario(request.user),
-        },
-    )
+    if request.method == "POST":
+        form = DisciplinaForm(request.POST)
+        if form.is_valid():
+            disciplina = form.save(commit=False)
+            disciplina.escola = request.user.escola
+            try:
+                disciplina.save()
+            except IntegrityError:
+                form.add_error(None, "Essa disciplina já existe para esta escola.")
+            else:
+                messages.success(request, "Disciplina criada com sucesso.")
+                return redirect("coordenacao_turmas")
+    return redirect("coordenacao_turmas")
 
 
 @papel_requerido(COORDENACAO)
@@ -95,7 +128,7 @@ def remover_disciplina(request, pk):
     disciplina = get_object_or_404(Disciplina.objects.para_usuario(request.user), pk=pk)
     disciplina.delete()
     messages.success(request, "Disciplina removida com sucesso.")
-    return redirect("coordenacao_disciplinas")
+    return redirect("coordenacao_turmas")
 
 
 @papel_requerido(COORDENACAO)

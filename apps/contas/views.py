@@ -189,10 +189,7 @@ def coordenacao(request):
 
 @papel_requerido(Usuario.Role.COORDENACAO)
 def coordenacao_usuarios(request):
-    papel_filtro = request.GET.get("papel", "").upper()
     usuarios_qs = Usuario.objects.da_escola(request.user).order_by("nome")
-    if papel_filtro in Usuario.Role.values:
-        usuarios_qs = usuarios_qs.filter(role=papel_filtro)
 
     form_coordenador = ConvidarCoordenadorForm(request.user.escola, request.POST or None)
     form_professor = ProfessorForm(request.POST or None)
@@ -296,7 +293,6 @@ def coordenacao_usuarios(request):
         "coordenacao/usuarios.html",
         {
             "usuarios": usuarios_qs,
-            "papel_filtro": papel_filtro,
             "papeis": Usuario.Role.choices,
             "form_coordenador": form_coordenador,
             "form_professor": form_professor,

@@ -39,152 +39,202 @@
 
     <div class="coord-columns" style="margin-top: 24px;">
       <!-- Cadastrar Aluno -->
-      <section class="auth-card coord-card" aria-labelledby="novo-aluno">
+      <section class="auth-card coord-card" style="display: flex; flex-direction: column;" aria-labelledby="novo-aluno">
         <h2 id="novo-aluno">Cadastrar aluno</h2>
         {% if form_aluno.non_field_errors %}
           <div class="form-alert" role="alert">{{ form_aluno.non_field_errors }}</div>
         {% endif %}
-        <form method="post" class="coord-form" novalidate>
+        <form method="post" class="coord-form" style="display: flex; flex-direction: column; flex: 1;" novalidate>
           {% csrf_token %}
           <input type="hidden" name="cadastrar_aluno" value="1">
           {% include "componentes/campo.html" with campo=form_aluno.nome %}
           {% include "componentes/campo.html" with campo=form_aluno.email %}
           {% include "componentes/campo.html" with campo=form_aluno.turma %}
-          <button class="button button-primary" type="submit">Cadastrar aluno <span aria-hidden="true">↗</span></button>
+          <div style="margin-top: auto; padding-top: 14px;">
+            <button class="button button-primary" type="submit">Cadastrar aluno <span aria-hidden="true">↗</span></button>
+          </div>
         </form>
       </section>
 
       <!-- Importar Alunos CSV -->
-      <section class="auth-card coord-card" aria-labelledby="importar-alunos">
+      <section class="auth-card coord-card" style="display: flex; flex-direction: column;" aria-labelledby="importar-alunos">
         <h2 id="importar-alunos">Importar alunos CSV</h2>
         <p class="form-help">Cabeçalho obrigatório: <code>nome,email,turma</code>.</p>
-        <form method="post" action="{% url 'importar_alunos' %}" enctype="multipart/form-data" class="coord-form" novalidate>
+        <p class="form-help" style="margin-top: 6px;">O arquivo deve conter os nomes dos estudantes, seus respectivos e-mails e o nome exato da turma correspondente.</p>
+        <form method="post" action="{% url 'importar_alunos' %}" enctype="multipart/form-data" class="coord-form" style="display: flex; flex-direction: column; flex: 1; margin-top: 14px;" novalidate>
           {% csrf_token %}
           {% include "componentes/campo.html" with campo=csv_form_aluno.arquivo %}
-          <button class="button button-primary" type="submit">Importar alunos <span aria-hidden="true">↗</span></button>
+          <div style="margin-top: auto; padding-top: 14px;">
+            <button class="button button-primary" type="submit">Importar alunos <span aria-hidden="true">↗</span></button>
+          </div>
         </form>
       </section>
     </div>
 
     <div class="coord-columns" style="margin-top: 24px;">
       <!-- Adicionar Coordenador -->
-      <section class="auth-card coord-card" aria-labelledby="convidar-coordenador">
+      <section class="auth-card coord-card" style="display: flex; flex-direction: column;" aria-labelledby="convidar-coordenador">
         <h2 id="convidar-coordenador">Adicionar coordenador</h2>
         <p class="form-help">Crie uma conta para outro membro da equipe de coordenação desta escola.</p>
         {% if form_coordenador.non_field_errors %}
           <div class="form-alert" role="alert">{{ form_coordenador.non_field_errors }}</div>
         {% endif %}
-        <form method="post" class="coord-form" novalidate>
+        <form method="post" class="coord-form" style="display: flex; flex-direction: column; flex: 1;" novalidate>
           {% csrf_token %}
           <input type="hidden" name="convidar_coordenador" value="1">
           {% include "componentes/campo.html" with campo=form_coordenador.nome %}
           {% include "componentes/campo.html" with campo=form_coordenador.email %}
-          <button class="button button-primary" type="submit">Cadastrar coordenador <span aria-hidden="true">↗</span></button>
+          <div style="margin-top: auto; padding-top: 14px;">
+            <button class="button button-primary" type="submit">Cadastrar coordenador <span aria-hidden="true">↗</span></button>
+          </div>
         </form>
       </section>
 
       <!-- Importar Coordenação CSV -->
-      <section class="auth-card coord-card" aria-labelledby="importar-coordenacao">
+      <section class="auth-card coord-card" style="display: flex; flex-direction: column;" aria-labelledby="importar-coordenacao">
         <h2 id="importar-coordenacao">Importar coordenação CSV</h2>
         <p class="form-help">Cabeçalho obrigatório: <code>nome,email</code>.</p>
-        <form method="post" enctype="multipart/form-data" class="coord-form" novalidate>
+        <p class="form-help" style="margin-top: 6px;">Permite cadastrar em lote membros da equipe pedagógica e de gestão escolar.</p>
+        <form method="post" enctype="multipart/form-data" class="coord-form" style="display: flex; flex-direction: column; flex: 1; margin-top: 14px;" novalidate>
           {% csrf_token %}
           <input type="hidden" name="importar_coordenadores" value="1">
           {% include "componentes/campo.html" with campo=csv_form_coordenador.arquivo %}
-          <button class="button button-primary" type="submit">Importar coordenação <span aria-hidden="true">↗</span></button>
+          <div style="margin-top: auto; padding-top: 14px;">
+            <button class="button button-primary" type="submit">Importar coordenação <span aria-hidden="true">↗</span></button>
+          </div>
         </form>
       </section>
     </div>
 
-    <!-- Filtro de Usuários reposicionado logo antes da tabela -->
-    <section class="auth-card coord-card coord-wide" style="margin-top: 24px; padding: 18px 24px;" aria-labelledby="filtro-usuarios">
-      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+    <!-- Tabela Geral de Usuários e Barra Harmônica de Filtragem -->
+    <section class="auth-card coord-card coord-wide" style="margin-top: 28px;" aria-labelledby="lista-usuarios">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
         <div>
-          <h2 id="filtro-usuarios" style="font-size: 1.1rem; margin: 0;">Filtrar usuários</h2>
-          <p class="form-help" style="margin: 4px 0 0 0;">Selecione um papel para visualizar grupos específicos.</p>
+          <h2 id="lista-usuarios" style="margin: 0; font-size: 1.4rem;">Usuários da Escola (<span id="total-visivel">{{ usuarios.count }}</span>)</h2>
+          <p class="form-help" style="margin: 3px 0 0 0;">Gerencie acessos e visualize os papéis cadastrados.</p>
         </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <a class="button {% if not papel_filtro %}button-primary{% else %}text-button{% endif %}" href="{% url 'coordenacao_usuarios' %}">Todos</a>
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--pale); padding: 4px; border: 1px solid var(--line); border-radius: 3px;" role="group" aria-label="Filtrar por papel">
+          <button type="button" class="btn-filtro active" data-filtro="TODOS" style="background: var(--deep); color: var(--white); border: 0; padding: 6px 12px; font-size: 11px; font-weight: 700; border-radius: 2px; cursor: pointer;">Todos</button>
           {% for valor, rotulo in papeis %}
-            <a class="button {% if papel_filtro == valor %}button-primary{% else %}text-button{% endif %}" href="{% url 'coordenacao_usuarios' %}?papel={{ valor }}">{{ rotulo }}</a>
+            <button type="button" class="btn-filtro" data-filtro="{{ valor }}" style="background: transparent; color: var(--dark); border: 0; padding: 6px 12px; font-size: 11px; font-weight: 700; border-radius: 2px; cursor: pointer;">{{ rotulo }}</button>
           {% endfor %}
         </div>
       </div>
-    </section>
 
-    <!-- Tabela Geral de Usuários -->
-    <section class="auth-card coord-card coord-wide" style="margin-top: 24px;" aria-labelledby="lista-usuarios">
-      <h2 id="lista-usuarios">Usuários da Escola ({{ usuarios.count }})</h2>
       {% if usuarios %}
-        <div style="overflow-x: auto; margin-top: 20px;">
+        <div style="overflow-x: auto; margin-top: 16px;">
           <table class="coord-table" style="width: 100%; border-collapse: collapse;">
             <thead>
               <tr>
-                <th style="text-align: left;">Nome</th>
-                <th style="text-align: left;">E-mail</th>
-                <th style="text-align: left;">Papel / Detalhes</th>
-                <th style="text-align: left;">Status</th>
-                <th style="text-align: left;">Senha Provisória</th>
-                <th style="text-align: center; width: 140px;">Acesso</th>
-                <th style="text-align: right; width: 180px;">Ações</th>
+                <th style="text-align: left; vertical-align: middle;">Nome</th>
+                <th style="text-align: left; vertical-align: middle;">E-mail</th>
+                <th style="text-align: left; vertical-align: middle;">Papel / Detalhes</th>
+                <th style="text-align: left; vertical-align: middle;">Status</th>
+                <th style="text-align: left; vertical-align: middle;">Senha Provisória</th>
+                <th style="text-align: right; vertical-align: middle;">Ações</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="tabela-usuarios-corpo">
               {% for u in usuarios %}
-                <tr>
-                  <td>
+                <tr data-role="{{ u.role }}">
+                  <td style="vertical-align: middle;">
                     <strong>{{ u.nome }}</strong>
-                    {% if u.pk == request.user.pk %}<small style="color: var(--mustard);"> (você)</small>{% endif %}
+                    {% if u.pk == request.user.pk %}<small style="color: var(--mustard); font-weight: 700;"> (você)</small>{% endif %}
                   </td>
-                  <td>{{ u.email }}</td>
-                  <td>
+                  <td style="vertical-align: middle;">{{ u.email }}</td>
+                  <td style="vertical-align: middle;">
                     <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">{{ u.get_role_display }}</span>
                     {% if u.role == "ALUNO" and u.matriculas.exists %}
                       <br><small style="color: var(--muted);">{% for m in u.matriculas.all %}{{ m.turma.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}</small>
                     {% endif %}
                   </td>
-                  <td>
+                  <td style="vertical-align: middle;">
                     {% if u.is_active %}
                       <span style="color: var(--deep); font-weight: 600;">Ativo</span>
                     {% else %}
                       <span style="color: #9d4d37; font-weight: 600;">Desativado</span>
                     {% endif %}
                   </td>
-                  <td>
+                  <td style="vertical-align: middle;">
                     {% if u.precisa_trocar_senha and u.senha_provisoria %}
-                      <code style="background: var(--sand); padding: 3px 6px; font-weight: 700; border-radius: 2px;">{{ u.senha_provisoria }}</code>
+                      <code style="background: var(--sand); padding: 2px 6px; font-weight: 700; border-radius: 2px;">{{ u.senha_provisoria }}</code>
                       <br><small style="color: var(--muted); font-size: 10px;">Aguardando 1º acesso</small>
                     {% else %}
                       <small style="color: var(--muted);">Senha definitiva</small>
                     {% endif %}
                   </td>
-                  <td style="text-align: center;">
-                    {% if u.pk != request.user.pk %}
-                      <form method="post" action="{% url 'coordenacao_usuario_status' u.pk %}" style="display: inline-block;">
+                  <td style="text-align: right; vertical-align: middle; white-space: nowrap;">
+                    <div style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 14px;">
+                      <form method="post" action="{% url 'coordenacao_usuario_resetar_senha' u.pk %}" style="display: inline; margin: 0;">
                         {% csrf_token %}
-                        <button class="button {% if u.is_active %}button-light{% else %}button-primary{% endif %}" type="submit" style="padding: 4px 10px; font-size: 0.8rem; {% if u.is_active %}border-color: #9d4d37; color: #9d4d37;{% endif %}">
-                          {% if u.is_active %}Desativar{% else %}Reativar{% endif %}
-                        </button>
+                        <button class="text-button" type="submit" title="Gerar nova senha temporária para primeiro acesso" style="vertical-align: middle;">Nova senha provisória</button>
                       </form>
-                    {% else %}
-                      <small style="color: var(--muted);">Conta atual</small>
-                    {% endif %}
-                  </td>
-                  <td style="text-align: right;">
-                    <form method="post" action="{% url 'coordenacao_usuario_resetar_senha' u.pk %}" style="display: inline-block;">
-                      {% csrf_token %}
-                      <button class="text-button" type="submit" title="Gerar nova senha temporária para primeiro acesso">Nova senha provisória</button>
-                    </form>
+                      {% if u.pk != request.user.pk %}
+                        <form method="post" action="{% url 'coordenacao_usuario_status' u.pk %}" style="display: inline; margin: 0;">
+                          {% csrf_token %}
+                          <button class="text-button" type="submit" style="vertical-align: middle; {% if u.is_active %}color: #9d4d37;{% else %}color: var(--deep);{% endif %}">
+                            {% if u.is_active %}Desativar{% else %}Reativar{% endif %}
+                          </button>
+                        </form>
+                      {% endif %}
+                    </div>
                   </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
+          <p id="sem-usuarios-filtro" class="empty-state" style="display: none; margin-top: 16px;">Nenhum usuário encontrado para este filtro.</p>
         </div>
       {% else %}
-        <p class="empty-state">Nenhum usuário encontrado para este filtro.</p>
+        <p class="empty-state">Nenhum usuário cadastrado.</p>
       {% endif %}
     </section>
+  </div>
+</main>
+
+<script>
+  (function() {
+    const botoes = document.querySelectorAll('.btn-filtro');
+    const linhas = document.querySelectorAll('#tabela-usuarios-corpo tr');
+    const totalSpan = document.getElementById('total-visivel');
+    const semUsuarios = document.getElementById('sem-usuarios-filtro');
+
+    botoes.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const papel = this.dataset.filtro;
+
+        botoes.forEach(b => {
+          b.classList.remove('active');
+          b.style.background = 'transparent';
+          b.style.color = 'var(--dark)';
+        });
+        this.classList.add('active');
+        this.style.background = 'var(--deep)';
+        this.style.color = 'var(--white)';
+
+        let visiveis = 0;
+        linhas.forEach(linha => {
+          const role = linha.dataset.role;
+          if (papel === 'TODOS' || role === papel) {
+            linha.style.display = '';
+            visiveis++;
+          } else {
+            linha.style.display = 'none';
+          }
+        });
+
+        if (totalSpan) {
+          totalSpan.textContent = visiveis;
+        }
+
+        if (semUsuarios) {
+          semUsuarios.style.display = visiveis === 0 ? 'block' : 'none';
+        }
+      });
+    });
+  })();
+</script>
   </div>
 </main>
 {% endblock %}
