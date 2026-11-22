@@ -1,13 +1,21 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
+
+from apps.escolas.services import gerar_senha_temporaria
 
 from .decorators import papel_requerido
-from .forms import CadastroEscolaForm, ContaPasswordChangeForm, LoginForm
+from .forms import (
+    CadastroEscolaForm,
+    ContaPasswordChangeForm,
+    ConvidarCoordenadorForm,
+    LoginForm,
+)
 from .models import Usuario
 
 CADASTRO_LIMITE = 5
@@ -92,7 +100,12 @@ def sair(request):
 def trocar_senha(request):
     form = ContaPasswordChangeForm(request.user, request.POST or None)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        user = form.save()
+        update_session_auth_hash(request, user)
+        if user.precisa_trocar_senha or user.senha_provisoria:
+            user.precisa_trocar_senha = False
+            user.senha_provisoria = ""
+            user.save(update_fields=("precisa_trocar_senha", "senha_provisoria"))
         messages.success(request, "Sua senha foi atualizada.")
         return redirect(user_dashboard(request.user))
     return render(request, "contas/trocar_senha.html", {"form": form})
@@ -160,3 +173,76 @@ def professor(request):
 @papel_requerido(Usuario.Role.COORDENACAO)
 def coordenacao(request):
     return _painel(request, "coordenacao", "Espaço da coordenação")
+
+
+@papel_requerido(Usuario.Role.COORDENACAO)
+def coordenacao_usuarios(request):
+    papel_filtro = request.GET.get("papel", "").upper()
+    usuarios_qs = Usuario.objects.da_escola(request.user).order_by("nome")
+    if papel_filtro in Usuario.Role.values:
+        usuarios_qs = usuarios_qs.filter(role=papel_filtro)
+
+    form_coordenador = ConvidarCoordenadorForm(request.user.escola, request.POST or None)
+    if (
+        request.method == "POST"
+        and "convidar_coordenador" in request.POST
+        and form_coordenador.is_valid()
+    ):
+        senha = gerar_senha_temporaria()
+        novo_coord = Usuario.objects.create_user(
+            email=form_coordenador.cleaned_data["email"],
+            password=senha,
+            nome=form_coordenador.cleaned_data["nome"].strip(),
+            role=Usuario.Role.COORDENACAO,
+            escola=request.user.escola,
+            precisa_trocar_senha=True,
+            senha_provisoria=senha,
+        )
+        messages.success(
+            request,
+            f"Conta da coordenação criada para {novo_coord.nome}. Senha provisória: {senha}",
+        )
+        return redirect("coordenacao_usuarios")
+
+    return render(
+        request,
+        "coordenacao/usuarios.html",
+        {
+            "usuarios": usuarios_qs,
+            "papel_filtro": papel_filtro,
+            "papeis": Usuario.Role.choices,
+            "form_coordenador": form_coordenador,
+        },
+    )
+
+
+@papel_requerido(Usuario.Role.COORDENACAO)
+@require_POST
+def alternar_status_usuario(request, pk):
+    usuario_alvo = get_object_or_404(Usuario.objects.da_escola(request.user), pk=pk)
+    if usuario_alvo.pk == request.user.pk:
+        messages.error(request, "Você não pode desativar seu próprio acesso.")
+        return redirect("coordenacao_usuarios")
+
+    usuario_alvo.is_active = not usuario_alvo.is_active
+    usuario_alvo.save(update_fields=("is_active",))
+    status_str = "reativado" if usuario_alvo.is_active else "desativado"
+    messages.success(request, f"Acesso de {usuario_alvo.nome} foi {status_str} com sucesso.")
+    return redirect("coordenacao_usuarios")
+
+
+@papel_requerido(Usuario.Role.COORDENACAO)
+@require_POST
+def resetar_senha_usuario(request, pk):
+    usuario_alvo = get_object_or_404(Usuario.objects.da_escola(request.user), pk=pk)
+    nova_senha = gerar_senha_temporaria()
+    usuario_alvo.set_password(nova_senha)
+    usuario_alvo.precisa_trocar_senha = True
+    usuario_alvo.senha_provisoria = nova_senha
+    usuario_alvo.save(update_fields=("password", "precisa_trocar_senha", "senha_provisoria"))
+    messages.success(
+        request,
+        f"Nova senha provisória gerada para {usuario_alvo.nome}: {nova_senha}",
+    )
+    return redirect("coordenacao_usuarios")
+

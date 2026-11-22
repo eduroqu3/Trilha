@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Instabilidade temporária — Trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page">
+  <div class="site-container auth-layout auth-layout-compact">
+    <section class="auth-intro">
+      <a class="brand auth-brand" href="{% url 'home' %}" aria-label="trilha — início">
+        <img class="auth-logo" src="{% static 'img/logo-completo.png' %}" alt="trilha">
+      </a>
+      <p class="eyebrow"><span></span>PAUSA NO CAMINHO · 500</p>
+      <h1>Encontramos um obstáculo <em>inesperado.</em></h1>
+      <p>Nosso sistema registrou uma dificuldade temporária ao processar esta ação. Já estamos cuidando para restabelecer o percurso normal.</p>
+      <div style="margin-top: 28px;">
+        <a class="button button-primary" href="{% url 'home' %}">Voltar ao início <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+    <section class="auth-card" aria-labelledby="status-500">
+      <h2 id="status-500">Seus dados continuam protegidos</h2>
+      <p style="color: var(--muted); margin-bottom: 20px;">
+        Nenhuma avaliação ou informação da escola foi comprometida. Você pode tentar atualizar a página em alguns instantes.
+      </p>
+      <div class="privacy-notice" style="margin-top: 15px;">
+        <strong>Escuta cuidadosa</strong>
+        <p>Agradecemos a compreensão enquanto asseguramos a estabilidade deste espaço.</p>
+      </div>
+    </section>
+  </div>
+</main>
+{% endblock %}

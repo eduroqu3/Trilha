@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Acesso reservado — Trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page">
+  <div class="site-container auth-layout auth-layout-compact">
+    <section class="auth-intro">
+      <a class="brand auth-brand" href="{% url 'home' %}" aria-label="trilha — início">
+        <img class="auth-logo" src="{% static 'img/logo-completo.png' %}" alt="trilha">
+      </a>
+      <p class="eyebrow"><span></span>ESPAÇO RESERVADO · 403</p>
+      <h1>Este trecho requer <em>outra permissão.</em></h1>
+      <p>Você tentou acessar uma área que não está disponível para o seu papel ou usuário atual. Cuidamos com rigor da privacidade e das responsabilidades de cada papel.</p>
+      <div style="margin-top: 28px;">
+        <a class="button button-primary" href="{% url 'home' %}">Voltar com segurança <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+    <section class="auth-card" aria-labelledby="status-403">
+      <h2 id="status-403">Papéis e cuidados</h2>
+      <p style="color: var(--muted); margin-bottom: 20px;">
+        Alunos, professores e membros da coordenação possuem visões distintas para resguardar o anonimato e a escuta pedagógica.
+      </p>
+      <div class="privacy-notice" style="margin-top: 15px;">
+        <strong>Precisa de apoio?</strong>
+        <p>Se você precisa de acesso a esta seção, converse com a equipe de coordenação da sua escola.</p>
+      </div>
+    </section>
+  </div>
+</main>
+{% endblock %}

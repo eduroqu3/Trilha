@@ -41,6 +41,18 @@ class Usuario(AbstractUser):
     email = models.EmailField("e-mail", unique=True)
     nome = models.CharField("nome", max_length=180)
     role = models.CharField("papel", max_length=20, choices=Role.choices)
+    precisa_trocar_senha = models.BooleanField(
+        "precisa trocar senha",
+        default=False,
+        help_text="Indica se o usuário deve obrigatoriamente trocar a senha provisória no próximo acesso.",
+    )
+    senha_provisoria = models.CharField(
+        "senha provisória ativa",
+        max_length=128,
+        blank=True,
+        default="",
+        help_text="Última senha provisória gerada, visível para a coordenação enquanto não for alterada.",
+    )
     escola = models.ForeignKey(
         "escolas.Escola",
         on_delete=models.PROTECT,

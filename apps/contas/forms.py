@@ -52,6 +52,21 @@ class LoginForm(forms.Form):
     senha = forms.CharField(label="Senha", widget=forms.PasswordInput)
 
 
+class ConvidarCoordenadorForm(forms.Form):
+    nome = forms.CharField(label="Nome do coordenador", max_length=180)
+    email = forms.EmailField(label="E-mail")
+
+    def __init__(self, escola, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.escola = escola
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        if Usuario.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Já existe uma conta com este e-mail.")
+        return email
+
+
 class ContaPasswordChangeForm(PasswordChangeForm):
     old_password = forms.CharField(label="Senha atual", widget=forms.PasswordInput)
     new_password1 = forms.CharField(label="Nova senha", widget=forms.PasswordInput)

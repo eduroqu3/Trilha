@@ -20,6 +20,8 @@ def criar_professor(escola, nome, email):
         nome=nome,
         role=Usuario.Role.PROFESSOR,
         escola=escola,
+        precisa_trocar_senha=True,
+        senha_provisoria=senha,
     )
     return professor, senha
 
@@ -33,6 +35,8 @@ def criar_aluno(escola, nome, email, turma):
             nome=nome,
             role=Usuario.Role.ALUNO,
             escola=escola,
+            precisa_trocar_senha=True,
+            senha_provisoria=senha,
         )
         Matricula.objects.create(aluno=aluno, turma=turma)
     return aluno, senha

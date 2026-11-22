@@ -302,3 +302,160 @@ def test_avisos_globais_tem_dismiss_automatico():
     assert "site-messages" in script
     assert "3500" in script
     assert "is-hidden" in script
+
+
+def test_troca_obrigatoria_de_senha_bloqueia_outras_rotas(client, escola):
+    user = Usuario.objects.create_user(
+        email="pendente-troca@example.com",
+        password="Provisoria-123!",
+        nome="Pendente Troca",
+        role=Usuario.Role.ALUNO,
+        escola=escola,
+        precisa_trocar_senha=True,
+        senha_provisoria="Provisoria-123!",
+    )
+    client.force_login(user)
+
+    # Qualquer rota interna deve redirecionar para /conta/senha/
+    for rota in [reverse("home"), reverse("aluno"), reverse("coordenacao")]:
+        resp = client.get(rota)
+        assert resp.status_code == 302
+        assert resp.url == reverse("trocar_senha")
+
+    # /conta/senha/ deve responder normalmente (200)
+    page = client.get(reverse("trocar_senha"))
+    assert page.status_code == 200
+
+    # Ao atualizar a senha com sucesso, o bloqueio deve ser removido
+    post_resp = client.post(
+        reverse("trocar_senha"),
+        {
+            "old_password": "Provisoria-123!",
+            "new_password1": "NovaSenhaSegura-456!",
+            "new_password2": "NovaSenhaSegura-456!",
+        },
+    )
+    assert post_resp.status_code == 302
+    user.refresh_from_db()
+    assert user.precisa_trocar_senha is False
+    assert user.senha_provisoria == ""
+
+    # Agora o acesso a outras rotas é liberado
+    resp_liberado = client.get(reverse("aluno"))
+    assert resp_liberado.status_code == 200
+
+
+def test_coordenacao_so_gerencia_usuarios_da_propria_escola(client, escola, usuario):
+    outra_escola = Escola.objects.create(nome="Outra Escola")
+    outro_usuario = Usuario.objects.create_user(
+        email="outro-aluno@example.com",
+        password="Senha-forte-123!",
+        nome="Outro Aluno",
+        role=Usuario.Role.ALUNO,
+        escola=outra_escola,
+    )
+    client.force_login(usuario)
+
+    # Listagem de usuários só mostra membros da própria escola
+    response = client.get(reverse("coordenacao_usuarios"))
+    assert response.status_code == 200
+    assert usuario.email in response.content.decode()
+    assert outro_usuario.email not in response.content.decode()
+
+    # Tentativa de alterar status ou resetar senha de usuário de outra escola retorna 404
+    resp_status = client.post(
+        reverse("coordenacao_usuario_status", args=[outro_usuario.pk])
+    )
+    assert resp_status.status_code == 404
+
+    resp_reset = client.post(
+        reverse("coordenacao_usuario_resetar_senha", args=[outro_usuario.pk])
+    )
+    assert resp_reset.status_code == 404
+
+
+def test_usuario_desativado_nao_loga(client, escola):
+    user = Usuario.objects.create_user(
+        email="desativado@example.com",
+        password="Senha-forte-123!",
+        nome="Usuario Inativo",
+        role=Usuario.Role.PROFESSOR,
+        escola=escola,
+        is_active=False,
+    )
+    response = client.post(
+        reverse("entrar"),
+        {"email": user.email, "senha": "Senha-forte-123!"},
+    )
+    assert response.status_code == 200
+    assert "Não foi possível entrar com esses dados" in response.content.decode()
+    assert client.session.get("_auth_user_id") is None
+
+
+def test_desativar_aluno_nao_apaga_participacao(client, escola, usuario):
+    from apps.avaliacoes.models import CicloAvaliacao, Participacao
+    from apps.escolas.models import Disciplina, Turma, Vinculo
+
+    turma = Turma.objects.create(escola=escola, nome="9º B", ano_letivo=2026)
+    disciplina = Disciplina.objects.create(escola=escola, nome="História")
+    professor = Usuario.objects.create_user(
+        email="prof-hist@example.com",
+        password="Senha-forte-123!",
+        nome="Prof História",
+        role=Usuario.Role.PROFESSOR,
+        escola=escola,
+    )
+    aluno = Usuario.objects.create_user(
+        email="aluno-hist@example.com",
+        password="Senha-forte-123!",
+        nome="Aluno Hist",
+        role=Usuario.Role.ALUNO,
+        escola=escola,
+    )
+    vinculo = Vinculo.objects.create(
+        professor=professor, turma=turma, disciplina=disciplina
+    )
+    ciclo = CicloAvaliacao.objects.create(
+        escola=escola, nome="Ciclo Teste", status=CicloAvaliacao.Status.ABERTO
+    )
+    participacao = Participacao.objects.create(aluno=aluno, ciclo=ciclo, vinculo=vinculo)
+
+    client.force_login(usuario)
+    # Desativa o aluno pela interface de gestão
+    post_resp = client.post(reverse("coordenacao_usuario_status", args=[aluno.pk]))
+    assert post_resp.status_code == 302
+    aluno.refresh_from_db()
+    assert aluno.is_active is False
+
+    # Confirma que o registro de participação permanece intacto no banco
+    assert Participacao.objects.filter(pk=participacao.pk).exists()
+    assert Participacao.objects.get(pk=participacao.pk).aluno == aluno
+
+
+def test_coordenacao_pode_convidar_outro_coordenador(client, escola, usuario):
+    client.force_login(usuario)
+
+    resp = client.post(
+        reverse("coordenacao_usuarios"),
+        {
+            "convidar_coordenador": "1",
+            "nome": "Novo Coordenador",
+            "email": "novo.coord@example.com",
+        },
+    )
+    assert resp.status_code == 302
+    novo_coord = Usuario.objects.get(email="novo.coord@example.com")
+    assert novo_coord.role == Usuario.Role.COORDENACAO
+    assert novo_coord.escola == escola
+    assert novo_coord.precisa_trocar_senha is True
+    assert novo_coord.senha_provisoria != ""
+
+
+def test_paginas_de_erro_customizadas_404_403_500():
+    for template_name in ["404.html", "403.html", "500.html"]:
+        template_file = Path("templates") / template_name
+        assert template_file.exists()
+        conteudo = template_file.read_text(encoding="utf-8")
+        assert "favicon.svg" in Path("templates/base.html").read_text(encoding="utf-8")
+        assert "{% extends \"base.html\" %}" in conteudo
+
