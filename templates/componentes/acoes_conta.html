@@ -1,5 +1,9 @@
 <div class="account-actions" aria-label="Ações da conta">
-  <a class="auth-back system-back" href="{{ voltar_url }}"><span aria-hidden="true">←</span> Voltar</a>
+  {% if request.resolver_match.url_name != "coordenacao" and request.resolver_match.url_name != "coordenacao_usuarios" %}
+    <a class="auth-back system-back" href="{{ voltar_url }}"><span aria-hidden="true">←</span> Voltar</a>
+  {% else %}
+    <div></div>
+  {% endif %}
   <div class="account-actions-right">
     {% if request.resolver_match.url_name != "trocar_senha" %}
       <a class="text-button password-link" href="{% url 'trocar_senha' %}">Trocar senha</a>

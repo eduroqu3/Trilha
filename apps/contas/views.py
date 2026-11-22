@@ -1,3 +1,6 @@
+import csv
+import io
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -7,7 +10,16 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from apps.escolas.services import gerar_senha_temporaria
+from apps.escolas.forms import (
+    AlunoForm,
+    CSVImportForm,
+    ProfessorForm,
+)
+from apps.escolas.services import (
+    criar_aluno,
+    criar_professor,
+    gerar_senha_temporaria,
+)
 
 from .decorators import papel_requerido
 from .forms import (
@@ -172,7 +184,7 @@ def professor(request):
 
 @papel_requerido(Usuario.Role.COORDENACAO)
 def coordenacao(request):
-    return _painel(request, "coordenacao", "Espaço da coordenação")
+    return redirect("coordenacao_usuarios")
 
 
 @papel_requerido(Usuario.Role.COORDENACAO)
@@ -183,26 +195,101 @@ def coordenacao_usuarios(request):
         usuarios_qs = usuarios_qs.filter(role=papel_filtro)
 
     form_coordenador = ConvidarCoordenadorForm(request.user.escola, request.POST or None)
-    if (
-        request.method == "POST"
-        and "convidar_coordenador" in request.POST
-        and form_coordenador.is_valid()
-    ):
-        senha = gerar_senha_temporaria()
-        novo_coord = Usuario.objects.create_user(
-            email=form_coordenador.cleaned_data["email"],
-            password=senha,
-            nome=form_coordenador.cleaned_data["nome"].strip(),
-            role=Usuario.Role.COORDENACAO,
-            escola=request.user.escola,
-            precisa_trocar_senha=True,
-            senha_provisoria=senha,
-        )
-        messages.success(
-            request,
-            f"Conta da coordenação criada para {novo_coord.nome}. Senha provisória: {senha}",
-        )
-        return redirect("coordenacao_usuarios")
+    form_professor = ProfessorForm(request.POST or None)
+    form_aluno = AlunoForm(request.user, request.POST or None)
+    csv_form_professor = CSVImportForm(("nome", "email"), prefix="csv_prof")
+    csv_form_aluno = CSVImportForm(("nome", "email", "turma"), prefix="csv_aluno")
+    csv_form_coordenador = CSVImportForm(("nome", "email"), prefix="csv_coord")
+
+    if request.method == "POST":
+        if "importar_coordenadores" in request.POST:
+            csv_form_coordenador = CSVImportForm(
+                ("nome", "email"), request.POST, request.FILES, prefix="csv_coord"
+            )
+            if csv_form_coordenador.is_valid():
+                arquivo = csv_form_coordenador.cleaned_data["arquivo"]
+                conteudo = arquivo.read().decode("utf-8-sig", errors="replace")
+                reader = csv.DictReader(io.StringIO(conteudo))
+                criados = 0
+                erros = []
+                for i, linha in enumerate(reader, start=2):
+                    nome = (linha.get("nome") or "").strip()
+                    email = (linha.get("email") or "").strip().lower()
+                    if not nome or not email:
+                        erros.append(f"Linha {i}: nome ou e-mail vazio.")
+                        continue
+                    try:
+                        with transaction.atomic():
+                            senha = gerar_senha_temporaria()
+                            Usuario.objects.create_user(
+                                email=email,
+                                password=senha,
+                                nome=nome,
+                                role=Usuario.Role.COORDENACAO,
+                                escola=request.user.escola,
+                                precisa_trocar_senha=True,
+                                senha_provisoria=senha,
+                            )
+                        criados += 1
+                    except IntegrityError:
+                        erros.append(f"Linha {i}: e-mail {email} já cadastrado.")
+                if criados:
+                    messages.success(request, f"{criados} coordenador(es) importado(s) com sucesso.")
+                for erro in erros:
+                    messages.warning(request, erro)
+                return redirect("coordenacao_usuarios")
+
+        if "convidar_coordenador" in request.POST and form_coordenador.is_valid():
+            senha = gerar_senha_temporaria()
+            novo_coord = Usuario.objects.create_user(
+                email=form_coordenador.cleaned_data["email"],
+                password=senha,
+                nome=form_coordenador.cleaned_data["nome"].strip(),
+                role=Usuario.Role.COORDENACAO,
+                escola=request.user.escola,
+                precisa_trocar_senha=True,
+                senha_provisoria=senha,
+            )
+            messages.success(
+                request,
+                f"Conta da coordenação criada para {novo_coord.nome}. Senha provisória: {senha}",
+            )
+            return redirect("coordenacao_usuarios")
+
+        if "cadastrar_professor" in request.POST and form_professor.is_valid():
+            try:
+                with transaction.atomic():
+                    prof, senha = criar_professor(
+                        request.user.escola,
+                        form_professor.cleaned_data["nome"],
+                        form_professor.cleaned_data["email"],
+                    )
+            except IntegrityError:
+                form_professor.add_error(None, "Não foi possível criar este professor agora.")
+            else:
+                messages.success(
+                    request,
+                    f"Professor(a) {prof.nome} cadastrado(a). Senha provisória: {senha}",
+                )
+                return redirect("coordenacao_usuarios")
+
+        if "cadastrar_aluno" in request.POST and form_aluno.is_valid():
+            try:
+                with transaction.atomic():
+                    aluno_obj, senha = criar_aluno(
+                        request.user.escola,
+                        form_aluno.cleaned_data["nome"],
+                        form_aluno.cleaned_data["email"],
+                        form_aluno.cleaned_data["turma"],
+                    )
+            except IntegrityError:
+                form_aluno.add_error(None, "Não foi possível criar este aluno agora.")
+            else:
+                messages.success(
+                    request,
+                    f"Estudante {aluno_obj.nome} cadastrado(a) na turma {form_aluno.cleaned_data['turma'].nome}. Senha provisória: {senha}",
+                )
+                return redirect("coordenacao_usuarios")
 
     return render(
         request,
@@ -212,6 +299,11 @@ def coordenacao_usuarios(request):
             "papel_filtro": papel_filtro,
             "papeis": Usuario.Role.choices,
             "form_coordenador": form_coordenador,
+            "form_professor": form_professor,
+            "form_aluno": form_aluno,
+            "csv_form_professor": csv_form_professor,
+            "csv_form_aluno": csv_form_aluno,
+            "csv_form_coordenador": csv_form_coordenador,
         },
     )
 

@@ -140,12 +140,12 @@ def test_logout_somente_via_post(client, usuario):
 
     get_response = client.get(reverse("sair"))
     assert get_response.status_code == 302
-    assert client.get(reverse("coordenacao")).status_code == 200
+    assert client.get(reverse("coordenacao_usuarios")).status_code == 200
 
     post_response = client.post(reverse("sair"))
     assert post_response.status_code == 302
     assert post_response.url == reverse("entrar")
-    assert client.get(reverse("coordenacao")).status_code == 302
+    assert client.get(reverse("coordenacao_usuarios")).status_code == 302
 
 
 def test_cadastro_honeypot_nao_cria_conta(client, db):
@@ -176,22 +176,18 @@ def test_troca_de_senha_usa_logo_oficial(client, usuario):
     assert b"/static/img/logo-completo.png" in response.content
 
 
-def test_painel_da_coordenacao_tem_cartao_unico_centralizado(client, usuario):
+def test_coordenacao_redireciona_para_usuarios(client, usuario):
     client.force_login(usuario)
 
     response = client.get(reverse("coordenacao"))
 
-    assert response.status_code == 200
-    assert b"dashboard-page" in response.content
-    assert b"dashboard-layout" in response.content
-    assert b"dashboard-card" in response.content
-    assert "Olá, Coordenação" in response.content.decode()
+    assert response.status_code == 302
+    assert response.url == reverse("coordenacao_usuarios")
 
 
 def test_templates_de_painel_seguem_a_estrutura_por_papel():
     assert Path("templates/aluno/dashboard.html").exists()
     assert Path("templates/professor/dashboard.html").exists()
-    assert Path("templates/coordenacao/dashboard.html").exists()
     assert not Path("templates/painel").exists()
 
 
@@ -200,7 +196,6 @@ def test_templates_de_painel_seguem_a_estrutura_por_papel():
     [
         (Usuario.Role.ALUNO, "aluno"),
         (Usuario.Role.PROFESSOR, "professor"),
-        (Usuario.Role.COORDENACAO, "coordenacao"),
     ],
 )
 def test_paineis_das_tres_contas_exibem_retorno_e_logout(
@@ -223,16 +218,23 @@ def test_paineis_das_tres_contas_exibem_retorno_e_logout(
     assert "Voltar" in content
 
 
-def test_retorno_externo_e_ignorado_no_painel(client, usuario):
-    client.force_login(usuario)
+def test_retorno_externo_e_ignorado_no_painel(client, escola):
+    user = Usuario.objects.create_user(
+        email="aluno-externo@example.com",
+        password="Senha-forte-123!",
+        nome="Aluno Teste",
+        role=Usuario.Role.ALUNO,
+        escola=escola,
+    )
+    client.force_login(user)
 
     response = client.get(
-        reverse("coordenacao"),
+        reverse("aluno"),
         HTTP_REFERER="https://fora-do-sistema.example/conta/",
     )
 
     assert response.status_code == 200
-    assert 'href="/coordenacao/"' in response.content.decode()
+    assert 'href="/aluno/"' in response.content.decode()
 
 
 def test_troca_de_senha_tem_acoes_da_conta_sem_voltar_ao_inicio(client, usuario):

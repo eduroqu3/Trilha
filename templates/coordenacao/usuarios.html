@@ -6,13 +6,71 @@
   <div class="site-container coord-layout">
     <p class="eyebrow"><span></span>PESSOAS E ACESSOS</p>
     <h1>Gestão de Usuários</h1>
-    <p class="auth-lede">Acompanhe quem compõe a escola, gerencie senhas provisórias, convide outros coordenadores e cuide dos acessos com respeito e segurança.</p>
+    <p class="auth-lede">Centralize o cadastro de professores, alunos e equipe de coordenação, acompanhe senhas provisórias e cuide dos acessos com respeito e segurança.</p>
     {% include "coordenacao/_nav.html" %}
 
     <div class="coord-columns">
+      <!-- Cadastrar Professor -->
+      <section class="auth-card coord-card" aria-labelledby="novo-professor">
+        <h2 id="novo-professor">Cadastrar professor</h2>
+        {% if form_professor.non_field_errors %}
+          <div class="form-alert" role="alert">{{ form_professor.non_field_errors }}</div>
+        {% endif %}
+        <form method="post" class="coord-form" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="cadastrar_professor" value="1">
+          {% include "componentes/campo.html" with campo=form_professor.nome %}
+          {% include "componentes/campo.html" with campo=form_professor.email %}
+          <button class="button button-primary" type="submit">Cadastrar professor <span aria-hidden="true">↗</span></button>
+        </form>
+      </section>
+
+      <!-- Importar Professores CSV -->
+      <section class="auth-card coord-card" aria-labelledby="importar-professores">
+        <h2 id="importar-professores">Importar professores CSV</h2>
+        <p class="form-help">Cabeçalho obrigatório: <code>nome,email</code>.</p>
+        <form method="post" action="{% url 'importar_professores' %}" enctype="multipart/form-data" class="coord-form" novalidate>
+          {% csrf_token %}
+          {% include "componentes/campo.html" with campo=csv_form_professor.arquivo %}
+          <button class="button button-primary" type="submit">Importar professores <span aria-hidden="true">↗</span></button>
+        </form>
+      </section>
+    </div>
+
+    <div class="coord-columns" style="margin-top: 24px;">
+      <!-- Cadastrar Aluno -->
+      <section class="auth-card coord-card" aria-labelledby="novo-aluno">
+        <h2 id="novo-aluno">Cadastrar aluno</h2>
+        {% if form_aluno.non_field_errors %}
+          <div class="form-alert" role="alert">{{ form_aluno.non_field_errors }}</div>
+        {% endif %}
+        <form method="post" class="coord-form" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="cadastrar_aluno" value="1">
+          {% include "componentes/campo.html" with campo=form_aluno.nome %}
+          {% include "componentes/campo.html" with campo=form_aluno.email %}
+          {% include "componentes/campo.html" with campo=form_aluno.turma %}
+          <button class="button button-primary" type="submit">Cadastrar aluno <span aria-hidden="true">↗</span></button>
+        </form>
+      </section>
+
+      <!-- Importar Alunos CSV -->
+      <section class="auth-card coord-card" aria-labelledby="importar-alunos">
+        <h2 id="importar-alunos">Importar alunos CSV</h2>
+        <p class="form-help">Cabeçalho obrigatório: <code>nome,email,turma</code>.</p>
+        <form method="post" action="{% url 'importar_alunos' %}" enctype="multipart/form-data" class="coord-form" novalidate>
+          {% csrf_token %}
+          {% include "componentes/campo.html" with campo=csv_form_aluno.arquivo %}
+          <button class="button button-primary" type="submit">Importar alunos <span aria-hidden="true">↗</span></button>
+        </form>
+      </section>
+    </div>
+
+    <div class="coord-columns" style="margin-top: 24px;">
+      <!-- Adicionar Coordenador -->
       <section class="auth-card coord-card" aria-labelledby="convidar-coordenador">
         <h2 id="convidar-coordenador">Adicionar coordenador</h2>
-        <p class="form-help">Crie uma conta para outro membro da equipe de coordenação desta mesma escola.</p>
+        <p class="form-help">Crie uma conta para outro membro da equipe de coordenação desta escola.</p>
         {% if form_coordenador.non_field_errors %}
           <div class="form-alert" role="alert">{{ form_coordenador.non_field_errors }}</div>
         {% endif %}
@@ -25,19 +83,37 @@
         </form>
       </section>
 
-      <section class="auth-card coord-card" aria-labelledby="filtro-usuarios">
-        <h2 id="filtro-usuarios">Filtrar lista</h2>
-        <p class="form-help">Selecione um papel para visualizar grupos específicos.</p>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px;">
+      <!-- Importar Coordenação CSV -->
+      <section class="auth-card coord-card" aria-labelledby="importar-coordenacao">
+        <h2 id="importar-coordenacao">Importar coordenação CSV</h2>
+        <p class="form-help">Cabeçalho obrigatório: <code>nome,email</code>.</p>
+        <form method="post" enctype="multipart/form-data" class="coord-form" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="importar_coordenadores" value="1">
+          {% include "componentes/campo.html" with campo=csv_form_coordenador.arquivo %}
+          <button class="button button-primary" type="submit">Importar coordenação <span aria-hidden="true">↗</span></button>
+        </form>
+      </section>
+    </div>
+
+    <!-- Filtro de Usuários reposicionado logo antes da tabela -->
+    <section class="auth-card coord-card coord-wide" style="margin-top: 24px; padding: 18px 24px;" aria-labelledby="filtro-usuarios">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 id="filtro-usuarios" style="font-size: 1.1rem; margin: 0;">Filtrar usuários</h2>
+          <p class="form-help" style="margin: 4px 0 0 0;">Selecione um papel para visualizar grupos específicos.</p>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <a class="button {% if not papel_filtro %}button-primary{% else %}text-button{% endif %}" href="{% url 'coordenacao_usuarios' %}">Todos</a>
           {% for valor, rotulo in papeis %}
             <a class="button {% if papel_filtro == valor %}button-primary{% else %}text-button{% endif %}" href="{% url 'coordenacao_usuarios' %}?papel={{ valor }}">{{ rotulo }}</a>
           {% endfor %}
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
 
-    <section class="auth-card coord-card coord-wide" aria-labelledby="lista-usuarios">
+    <!-- Tabela Geral de Usuários -->
+    <section class="auth-card coord-card coord-wide" style="margin-top: 24px;" aria-labelledby="lista-usuarios">
       <h2 id="lista-usuarios">Usuários da Escola ({{ usuarios.count }})</h2>
       {% if usuarios %}
         <div style="overflow-x: auto; margin-top: 20px;">
@@ -46,10 +122,11 @@
               <tr>
                 <th style="text-align: left;">Nome</th>
                 <th style="text-align: left;">E-mail</th>
-                <th style="text-align: left;">Papel</th>
+                <th style="text-align: left;">Papel / Detalhes</th>
                 <th style="text-align: left;">Status</th>
                 <th style="text-align: left;">Senha Provisória</th>
-                <th style="text-align: right;">Ações</th>
+                <th style="text-align: center; width: 140px;">Acesso</th>
+                <th style="text-align: right; width: 180px;">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -60,7 +137,12 @@
                     {% if u.pk == request.user.pk %}<small style="color: var(--mustard);"> (você)</small>{% endif %}
                   </td>
                   <td>{{ u.email }}</td>
-                  <td><span style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">{{ u.get_role_display }}</span></td>
+                  <td>
+                    <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">{{ u.get_role_display }}</span>
+                    {% if u.role == "ALUNO" and u.matriculas.exists %}
+                      <br><small style="color: var(--muted);">{% for m in u.matriculas.all %}{{ m.turma.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}</small>
+                    {% endif %}
+                  </td>
                   <td>
                     {% if u.is_active %}
                       <span style="color: var(--deep); font-weight: 600;">Ativo</span>
@@ -76,21 +158,23 @@
                       <small style="color: var(--muted);">Senha definitiva</small>
                     {% endif %}
                   </td>
-                  <td style="text-align: right;">
-                    <div style="display: inline-flex; gap: 12px; align-items: center; justify-content: flex-end;">
-                      <form method="post" action="{% url 'coordenacao_usuario_resetar_senha' u.pk %}">
+                  <td style="text-align: center;">
+                    {% if u.pk != request.user.pk %}
+                      <form method="post" action="{% url 'coordenacao_usuario_status' u.pk %}" style="display: inline-block;">
                         {% csrf_token %}
-                        <button class="text-button" type="submit" title="Gerar nova senha temporária para primeiro acesso">Nova senha provisória</button>
+                        <button class="button {% if u.is_active %}button-light{% else %}button-primary{% endif %}" type="submit" style="padding: 4px 10px; font-size: 0.8rem; {% if u.is_active %}border-color: #9d4d37; color: #9d4d37;{% endif %}">
+                          {% if u.is_active %}Desativar{% else %}Reativar{% endif %}
+                        </button>
                       </form>
-                      {% if u.pk != request.user.pk %}
-                        <form method="post" action="{% url 'coordenacao_usuario_status' u.pk %}">
-                          {% csrf_token %}
-                          <button class="text-button" type="submit" style="{% if u.is_active %}color: #9d4d37;{% else %}color: var(--deep);{% endif %}">
-                            {% if u.is_active %}Desativar{% else %}Reativar{% endif %}
-                          </button>
-                        </form>
-                      {% endif %}
-                    </div>
+                    {% else %}
+                      <small style="color: var(--muted);">Conta atual</small>
+                    {% endif %}
+                  </td>
+                  <td style="text-align: right;">
+                    <form method="post" action="{% url 'coordenacao_usuario_resetar_senha' u.pk %}" style="display: inline-block;">
+                      {% csrf_token %}
+                      <button class="text-button" type="submit" title="Gerar nova senha temporária para primeiro acesso">Nova senha provisória</button>
+                    </form>
                   </td>
                 </tr>
               {% endfor %}
