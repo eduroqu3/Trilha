@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Trilha</title>
+  <desc id="desc">Letra T minimalista da marca Trilha</desc>
+  <rect width="64" height="64" rx="14" fill="#216B58"/>
+  <path fill="#FAF6EE" d="M13 14h38v9H37v27h-10V23H13z"/>
+</svg>
