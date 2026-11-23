@@ -1,16 +1,16 @@
-<div class="account-actions" aria-label="Ações da conta">
-  {% if request.resolver_match.url_name != "coordenacao" and request.resolver_match.url_name != "coordenacao_usuarios" %}
-    <a class="auth-back system-back" href="{{ voltar_url }}"><span aria-hidden="true">←</span> Voltar</a>
-  {% else %}
-    <div></div>
-  {% endif %}
-  <div class="account-actions-right">
-    {% if request.resolver_match.url_name != "trocar_senha" %}
-      <a class="text-button password-link" href="{% url 'trocar_senha' %}">Trocar senha</a>
+<div class="account-actions" style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 28px;" aria-label="Ações da conta">
+  <div style="display: inline-flex; align-items: center; min-height: 24px;">
+    {% if request.resolver_match.url_name != "coordenacao" and request.resolver_match.url_name != "coordenacao_usuarios" %}
+      <a class="auth-back system-back" href="{{ voltar_url }}" style="display: inline-flex; align-items: center; line-height: 1;"><span aria-hidden="true">←</span> Voltar</a>
     {% endif %}
-    <form method="post" action="{% url 'sair' %}">
+  </div>
+  <div class="account-actions-right" style="display: inline-flex; align-items: center; gap: 18px; margin: 0; min-height: 24px;">
+    {% if request.resolver_match.url_name != "trocar_senha" %}
+      <a class="text-button password-link" href="{% url 'trocar_senha' %}" style="display: inline-flex; align-items: center; line-height: 1;">Trocar senha</a>
+    {% endif %}
+    <form method="post" action="{% url 'sair' %}" style="display: inline-flex; align-items: center; margin: 0; padding: 0;">
       {% csrf_token %}
-      <button class="text-button logout-button" type="submit">Sair <span aria-hidden="true">↗</span></button>
+      <button class="text-button logout-button" type="submit" style="display: inline-flex; align-items: center; line-height: 1;">Sair <span aria-hidden="true">↗</span></button>
     </form>
   </div>
 </div>

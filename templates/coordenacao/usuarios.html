@@ -39,69 +39,59 @@
 
     <div class="coord-columns" style="margin-top: 24px;">
       <!-- Cadastrar Aluno -->
-      <section class="auth-card coord-card" style="display: flex; flex-direction: column;" aria-labelledby="novo-aluno">
+      <section class="auth-card coord-card" aria-labelledby="novo-aluno">
         <h2 id="novo-aluno">Cadastrar aluno</h2>
         {% if form_aluno.non_field_errors %}
           <div class="form-alert" role="alert">{{ form_aluno.non_field_errors }}</div>
         {% endif %}
-        <form method="post" class="coord-form" style="display: flex; flex-direction: column; flex: 1;" novalidate>
+        <form method="post" class="coord-form" novalidate>
           {% csrf_token %}
           <input type="hidden" name="cadastrar_aluno" value="1">
           {% include "componentes/campo.html" with campo=form_aluno.nome %}
           {% include "componentes/campo.html" with campo=form_aluno.email %}
           {% include "componentes/campo.html" with campo=form_aluno.turma %}
-          <div style="margin-top: auto; padding-top: 14px;">
-            <button class="button button-primary" type="submit">Cadastrar aluno <span aria-hidden="true">↗</span></button>
-          </div>
+          <button class="button button-primary" type="submit">Cadastrar aluno <span aria-hidden="true">↗</span></button>
         </form>
       </section>
 
       <!-- Importar Alunos CSV -->
-      <section class="auth-card coord-card" style="display: flex; flex-direction: column;" aria-labelledby="importar-alunos">
+      <section class="auth-card coord-card" aria-labelledby="importar-alunos">
         <h2 id="importar-alunos">Importar alunos CSV</h2>
         <p class="form-help">Cabeçalho obrigatório: <code>nome,email,turma</code>.</p>
-        <p class="form-help" style="margin-top: 6px;">O arquivo deve conter os nomes dos estudantes, seus respectivos e-mails e o nome exato da turma correspondente.</p>
-        <form method="post" action="{% url 'importar_alunos' %}" enctype="multipart/form-data" class="coord-form" style="display: flex; flex-direction: column; flex: 1; margin-top: 14px;" novalidate>
+        <form method="post" action="{% url 'importar_alunos' %}" enctype="multipart/form-data" class="coord-form" novalidate>
           {% csrf_token %}
           {% include "componentes/campo.html" with campo=csv_form_aluno.arquivo %}
-          <div style="margin-top: auto; padding-top: 14px;">
-            <button class="button button-primary" type="submit">Importar alunos <span aria-hidden="true">↗</span></button>
-          </div>
+          <button class="button button-primary" type="submit">Importar alunos <span aria-hidden="true">↗</span></button>
         </form>
       </section>
     </div>
 
     <div class="coord-columns" style="margin-top: 24px;">
       <!-- Adicionar Coordenador -->
-      <section class="auth-card coord-card" style="display: flex; flex-direction: column;" aria-labelledby="convidar-coordenador">
+      <section class="auth-card coord-card" aria-labelledby="convidar-coordenador">
         <h2 id="convidar-coordenador">Adicionar coordenador</h2>
         <p class="form-help">Crie uma conta para outro membro da equipe de coordenação desta escola.</p>
         {% if form_coordenador.non_field_errors %}
           <div class="form-alert" role="alert">{{ form_coordenador.non_field_errors }}</div>
         {% endif %}
-        <form method="post" class="coord-form" style="display: flex; flex-direction: column; flex: 1;" novalidate>
+        <form method="post" class="coord-form" novalidate>
           {% csrf_token %}
           <input type="hidden" name="convidar_coordenador" value="1">
           {% include "componentes/campo.html" with campo=form_coordenador.nome %}
           {% include "componentes/campo.html" with campo=form_coordenador.email %}
-          <div style="margin-top: auto; padding-top: 14px;">
-            <button class="button button-primary" type="submit">Cadastrar coordenador <span aria-hidden="true">↗</span></button>
-          </div>
+          <button class="button button-primary" type="submit">Cadastrar coordenador <span aria-hidden="true">↗</span></button>
         </form>
       </section>
 
       <!-- Importar Coordenação CSV -->
-      <section class="auth-card coord-card" style="display: flex; flex-direction: column;" aria-labelledby="importar-coordenacao">
+      <section class="auth-card coord-card" aria-labelledby="importar-coordenacao">
         <h2 id="importar-coordenacao">Importar coordenação CSV</h2>
         <p class="form-help">Cabeçalho obrigatório: <code>nome,email</code>.</p>
-        <p class="form-help" style="margin-top: 6px;">Permite cadastrar em lote membros da equipe pedagógica e de gestão escolar.</p>
-        <form method="post" enctype="multipart/form-data" class="coord-form" style="display: flex; flex-direction: column; flex: 1; margin-top: 14px;" novalidate>
+        <form method="post" enctype="multipart/form-data" class="coord-form" novalidate>
           {% csrf_token %}
           <input type="hidden" name="importar_coordenadores" value="1">
           {% include "componentes/campo.html" with campo=csv_form_coordenador.arquivo %}
-          <div style="margin-top: auto; padding-top: 14px;">
-            <button class="button button-primary" type="submit">Importar coordenação <span aria-hidden="true">↗</span></button>
-          </div>
+          <button class="button button-primary" type="submit">Importar coordenação <span aria-hidden="true">↗</span></button>
         </form>
       </section>
     </div>

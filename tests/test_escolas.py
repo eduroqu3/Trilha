@@ -93,8 +93,6 @@ def test_papel_nao_coordena_nao_acessa_gestao(client, escola):
     [
         "coordenacao_ciclos",
         "coordenacao_turmas",
-        "coordenacao_professores",
-        "coordenacao_alunos",
         "coordenacao_vinculos",
     ],
 )
@@ -109,12 +107,19 @@ def test_telas_da_coordenacao_exibem_acoes_de_conta(client, coordenacao, url_nam
     assert 'action="/sair/"' in content
 
 
-def test_coordenacao_disciplinas_redireciona_para_turmas(client, coordenacao):
+@pytest.mark.parametrize(
+    "url_name",
+    [
+        "coordenacao_disciplinas",
+        "coordenacao_professores",
+        "coordenacao_alunos",
+    ],
+)
+def test_rotas_legadas_coordenacao_redirecionam(client, coordenacao, url_name):
     login_coord(client, coordenacao)
 
-    response = client.get(reverse("coordenacao_disciplinas"))
+    response = client.get(reverse(url_name))
     assert response.status_code == 302
-    assert response.url == reverse("coordenacao_turmas")
 
 
 def test_coordena_cadastra_turma_e_disciplina(client, coordenacao):

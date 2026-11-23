@@ -133,62 +133,46 @@ def remover_disciplina(request, pk):
 
 @papel_requerido(COORDENACAO)
 def professores(request):
-    form = ProfessorForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        try:
-            with transaction.atomic():
-                professor, senha = criar_professor(
-                    request.user.escola,
-                    form.cleaned_data["nome"],
-                    form.cleaned_data["email"],
+    if request.method == "POST":
+        form = ProfessorForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    professor, senha = criar_professor(
+                        request.user.escola,
+                        form.cleaned_data["nome"],
+                        form.cleaned_data["email"],
+                    )
+            except IntegrityError:
+                form.add_error(None, "Não foi possível criar este professor agora.")
+            else:
+                return _resultado_importacao(
+                    request,
+                    "professores",
+                    {
+                        "criados": [
+                            {
+                                "nome": professor.nome,
+                                "email": professor.email,
+                                "senha": senha,
+                            }
+                        ],
+                        "erros": [],
+                    },
                 )
-        except IntegrityError:
-            form.add_error(None, "Não foi possível criar este professor agora.")
-        else:
-            return _resultado_importacao(
-                request,
-                "professores",
-                {
-                    "criados": [
-                        {
-                            "nome": professor.nome,
-                            "email": professor.email,
-                            "senha": senha,
-                        }
-                    ],
-                    "erros": [],
-                },
-            )
-    return render(
-        request,
-        "coordenacao/professores.html",
-        {
-            "form": form,
-            "csv_form": CSVImportForm(("nome", "email")),
-            "professores": Usuario.objects.da_escola(
-                request.user, role=Usuario.Role.PROFESSOR
-            ),
-        },
-    )
+    return redirect("coordenacao_usuarios")
 
 
 @papel_requerido(COORDENACAO)
 def importar_professores_csv(request):
     if request.method != "POST":
-        return redirect("coordenacao_professores")
+        return redirect("coordenacao_usuarios")
     form = CSVImportForm(("nome", "email"), request.POST, request.FILES)
     if not form.is_valid():
-        return render(
-            request,
-            "coordenacao/professores.html",
-            {
-                "form": ProfessorForm(),
-                "csv_form": form,
-                "professores": Usuario.objects.da_escola(
-                    request.user, role=Usuario.Role.PROFESSOR
-                ),
-            },
-        )
+        for erros in form.errors.values():
+            for erro in erros:
+                messages.error(request, f"Erro ao importar professores: {erro}")
+        return redirect("coordenacao_usuarios")
     return _resultado_importacao(
         request,
         "professores",
@@ -198,64 +182,48 @@ def importar_professores_csv(request):
 
 @papel_requerido(COORDENACAO)
 def alunos(request):
-    form = AlunoForm(request.user, request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        try:
-            with transaction.atomic():
-                aluno, senha = criar_aluno(
-                    request.user.escola,
-                    form.cleaned_data["nome"],
-                    form.cleaned_data["email"],
-                    form.cleaned_data["turma"],
+    if request.method == "POST":
+        form = AlunoForm(request.user, request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    aluno, senha = criar_aluno(
+                        request.user.escola,
+                        form.cleaned_data["nome"],
+                        form.cleaned_data["email"],
+                        form.cleaned_data["turma"],
+                    )
+            except IntegrityError:
+                form.add_error(None, "Não foi possível criar este aluno agora.")
+            else:
+                return _resultado_importacao(
+                    request,
+                    "alunos",
+                    {
+                        "criados": [
+                            {
+                                "nome": aluno.nome,
+                                "email": aluno.email,
+                                "senha": senha,
+                                "turma": form.cleaned_data["turma"].nome,
+                            }
+                        ],
+                        "erros": [],
+                    },
                 )
-        except IntegrityError:
-            form.add_error(None, "Não foi possível criar este aluno agora.")
-        else:
-            return _resultado_importacao(
-                request,
-                "alunos",
-                {
-                    "criados": [
-                        {
-                            "nome": aluno.nome,
-                            "email": aluno.email,
-                            "senha": senha,
-                            "turma": form.cleaned_data["turma"].nome,
-                        }
-                    ],
-                    "erros": [],
-                },
-            )
-    return render(
-        request,
-        "coordenacao/alunos.html",
-        {
-            "form": form,
-            "csv_form": CSVImportForm(("nome", "email", "turma")),
-            "alunos": Usuario.objects.da_escola(
-                request.user, role=Usuario.Role.ALUNO
-            ).prefetch_related("matriculas__turma"),
-        },
-    )
+    return redirect("coordenacao_usuarios")
 
 
 @papel_requerido(COORDENACAO)
 def importar_alunos_csv(request):
     if request.method != "POST":
-        return redirect("coordenacao_alunos")
+        return redirect("coordenacao_usuarios")
     form = CSVImportForm(("nome", "email", "turma"), request.POST, request.FILES)
     if not form.is_valid():
-        return render(
-            request,
-            "coordenacao/alunos.html",
-            {
-                "form": AlunoForm(request.user),
-                "csv_form": form,
-                "alunos": Usuario.objects.da_escola(
-                    request.user, role=Usuario.Role.ALUNO
-                ).prefetch_related("matriculas__turma"),
-            },
-        )
+        for erros in form.errors.values():
+            for erro in erros:
+                messages.error(request, f"Erro ao importar alunos: {erro}")
+        return redirect("coordenacao_usuarios")
     return _resultado_importacao(
         request,
         "alunos",
