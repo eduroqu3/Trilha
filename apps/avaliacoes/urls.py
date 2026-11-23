@@ -6,6 +6,7 @@ urlpatterns = [
     path("coordenacao/questionarios/", views.questionarios, name="coordenacao_questionarios"),
     path("coordenacao/questionarios/<int:modelo_id>/", views.questionario_editar, name="coordenacao_questionario_editar"),
     path("coordenacao/questionarios/<int:modelo_id>/duplicar/", views.questionario_duplicar, name="coordenacao_questionario_duplicar"),
+    path("coordenacao/questionarios/<int:modelo_id>/excluir/", views.questionario_excluir, name="coordenacao_questionario_excluir"),
     path("coordenacao/questionarios/<int:modelo_id>/preview/", views.questionario_preview, name="coordenacao_questionario_preview"),
     path("coordenacao/ciclos/", views.ciclos, name="coordenacao_ciclos"),
     path("coordenacao/ciclos/<int:ciclo_id>/encerrar/", views.encerrar_ciclo, name="coordenacao_encerrar_ciclo"),

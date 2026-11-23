@@ -63,6 +63,11 @@ class ModeloQuestionario(models.Model):
         if self.pk:
             validar_regras_modelo(self)
 
+    def delete(self, *args, **kwargs):
+        if self.padrao:
+            raise ValidationError("O modelo padrão da Trilha não pode ser excluído; duplique-o para personalizar.")
+        return super().delete(*args, **kwargs)
+
 
 def validar_regras_modelo(modelo):
     perguntas = list(modelo.perguntas_modelo.all()) if modelo.pk else []

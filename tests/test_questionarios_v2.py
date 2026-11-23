@@ -58,9 +58,19 @@ def test_limites_e_termos_de_anonimato():
     escola = Escola.objects.create(nome="Escola limites")
     modelo = ModeloQuestionario.objects.create(escola=escola, nome="Validação")
     with pytest.raises(ValidationError):
-        PerguntaModelo.objects.create(modelo=modelo, texto="Qual é seu nome?", tipo=PerguntaModelo.Tipo.ESCALA_1_5, ordem=1)
+        PerguntaModelo.objects.create(
+            modelo=modelo,
+            texto="Qual é seu nome?",
+            tipo=PerguntaModelo.Tipo.ESCALA_1_5,
+            ordem=1,
+        )
     for ordem in range(1, 5):
-        PerguntaModelo.objects.create(modelo=modelo, texto=f"Pergunta segura {ordem}", tipo=PerguntaModelo.Tipo.ESCALA_1_5, ordem=ordem)
+        PerguntaModelo.objects.create(
+            modelo=modelo,
+            texto=f"Pergunta segura {ordem}",
+            tipo=PerguntaModelo.Tipo.ESCALA_1_5,
+            ordem=ordem,
+        )
     with pytest.raises(ValidationError):
         modelo.clean()
 
@@ -70,13 +80,51 @@ def test_escolha_unica_exige_de_duas_a_seis_opcoes():
     escola = Escola.objects.create(nome="Escola escolhas")
     modelo = ModeloQuestionario.objects.create(escola=escola, nome="Escolhas")
     with pytest.raises(ValidationError):
-        PerguntaModelo.objects.create(modelo=modelo, texto="Como foi a aula?", tipo=PerguntaModelo.Tipo.ESCOLHA_UNICA, ordem=1, opcoes=["uma"])
+        PerguntaModelo.objects.create(
+            modelo=modelo,
+            texto="Como foi a aula?",
+            tipo=PerguntaModelo.Tipo.ESCOLHA_UNICA,
+            ordem=1,
+            opcoes=["uma"],
+        )
 
 
 @pytest.mark.django_db
 def test_ciclos_legados_continuam_com_snapshot_de_perguntas(escolas):
     escola_a, _ = escolas
-    ciclo = CicloAvaliacao.objects.create(escola=escola_a, nome="Legado", status=CicloAvaliacao.Status.ABERTO)
-    Pergunta.objects.create(ciclo=ciclo, texto="Pergunta legada", tipo=Pergunta.Tipo.ESCALA_1_5, ordem=1)
+    ciclo = CicloAvaliacao.objects.create(
+        escola=escola_a,
+        nome="Legado",
+        status=CicloAvaliacao.Status.ABERTO,
+    )
+    Pergunta.objects.create(
+        ciclo=ciclo,
+        texto="Pergunta legada",
+        tipo=Pergunta.Tipo.ESCALA_1_5,
+        ordem=1,
+    )
     assert ciclo.modelo_questionario_id is None
     assert ciclo.perguntas.count() == 1
+
+
+@pytest.mark.django_db
+def test_modelo_padrao_nao_pode_ser_excluido():
+    escola = Escola.objects.create(nome="Escola proteção")
+    modelo = criar_modelo_padrao(escola)
+    with pytest.raises(ValidationError):
+        modelo.delete()
+
+
+@pytest.mark.django_db
+def test_exclusao_de_modelo_personalizado_remove_suas_perguntas():
+    escola = Escola.objects.create(nome="Escola exclusão")
+    modelo = ModeloQuestionario.objects.create(escola=escola, nome="Temporário")
+    PerguntaModelo.objects.create(
+        modelo=modelo,
+        texto="Pergunta segura",
+        tipo=PerguntaModelo.Tipo.ESCALA_1_5,
+        ordem=1,
+    )
+    modelo_id = modelo.pk
+    modelo.delete()
+    assert not ModeloQuestionario.objects.filter(pk=modelo_id).exists()

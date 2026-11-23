@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models.deletion import ProtectedError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -137,6 +138,22 @@ def questionario_duplicar(request, modelo_id):
 def questionario_preview(request, modelo_id):
     modelo = get_object_or_404(ModeloQuestionario.objects.filter(escola=request.user.escola), pk=modelo_id)
     return render(request, "aluno/questionario_preview.html", {"modelo": modelo, "perguntas": modelo.perguntas_modelo.all()})
+
+
+@papel_requerido(COORDENACAO)
+@require_POST
+def questionario_excluir(request, modelo_id):
+    modelo = get_object_or_404(ModeloQuestionario.objects.filter(escola=request.user.escola), pk=modelo_id)
+    if modelo.padrao:
+        messages.error(request, "O modelo padrão da Trilha não pode ser excluído.")
+    else:
+        try:
+            modelo.delete()
+        except ProtectedError:
+            messages.error(request, "Este modelo já foi usado em um ciclo e não pode ser excluído. Arquive-o para não aparecer em novos ciclos.")
+        else:
+            messages.success(request, "Modelo excluído.")
+    return redirect("coordenacao_questionarios")
 
 
 @papel_requerido(COORDENACAO)
