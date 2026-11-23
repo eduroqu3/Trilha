@@ -3,31 +3,43 @@
 {% block title %}Cadastrar escola — Trilha{% endblock %}
 {% block content %}
 <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-<div class="site-container auth-topbar"><a class="auth-back" href="{% url 'home' %}"><span aria-hidden="true">←</span> Voltar ao início</a></div>
-<main id="conteudo" class="auth-page">
-  <div class="site-container auth-layout">
-    <section class="auth-intro">
-      <a class="brand auth-brand" href="{% url 'home' %}" aria-label="trilha — início"><img class="auth-logo" src="{% static 'img/logo-completo.png' %}" alt="trilha"></a>
-      <p class="eyebrow"><span></span>COMEÇAR UMA ESCUTA</p>
-      <h1>Um caminho para cada <em>escola.</em></h1>
-      <p>Crie o primeiro acesso da coordenação para organizar a escuta com calma, contexto e respeito.</p>
-      <p class="auth-quote"><span aria-hidden="true">✳</span> Uma boa conversa começa quando sabemos como chegar.</p>
+<main id="conteudo" class="auth-split-page">
+  <div class="auth-split-shell auth-split-shell-register">
+    <section class="auth-split-visual" aria-labelledby="register-visual-heading">
+      <div class="auth-split-brand-row">
+        <a class="auth-split-logo" href="{% url 'home' %}" aria-label="Trilha — início">
+          <img src="{% static 'img/logo-completo.png' %}" alt="Trilha.">
+        </a>
+      </div>
+      <div class="auth-split-visual-copy">
+        <p class="eyebrow"><span></span>COMEÇAR UMA ESCUTA</p>
+        <h1 id="register-visual-heading">Um caminho para cada <em>escola.</em></h1>
+        <p>Crie o primeiro acesso da coordenação para organizar a escuta com calma, contexto e respeito.</p>
+      </div>
+      <div class="auth-split-visual-art" aria-hidden="true">
+        <img src="{% static 'img/hero.svg' %}" alt="">
+      </div>
+      <p class="auth-split-note"><span aria-hidden="true">✳</span> Uma boa conversa começa quando sabemos como chegar.</p>
     </section>
-    <section class="auth-card" aria-labelledby="cadastro-heading">
-      <h2 id="cadastro-heading">Cadastrar minha escola</h2>
-      <p class="auth-lede">Preencha os dados de quem vai cuidar do primeiro acesso.</p>
-      {% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}
-      <form method="post" novalidate>
-        {% csrf_token %}
-        {% include "componentes/campo.html" with campo=form.nome_escola %}
-        {% include "componentes/campo.html" with campo=form.nome_responsavel %}
-        {% include "componentes/campo.html" with campo=form.email %}
-        {% include "componentes/campo.html" with campo=form.senha %}
-        {% include "componentes/campo.html" with campo=form.confirmar_senha %}
-        <div class="honeypot" aria-hidden="true">{{ form.website }}</div>
-        <button class="button button-primary" type="submit">Criar acesso <span aria-hidden="true">↗</span></button>
-      </form>
-      <p class="auth-switch">Já tem acesso? <a href="{% url 'entrar' %}">Entrar</a></p>
+    <section class="auth-split-form-panel" aria-labelledby="cadastro-heading">
+      <a class="auth-split-back" href="{% url 'home' %}"><span aria-hidden="true">←</span> Voltar ao início</a>
+      <div class="auth-split-form-content">
+        <p class="auth-split-kicker">PRIMEIRO ACESSO</p>
+        <h2 id="cadastro-heading">Cadastrar escola</h2>
+        <p class="auth-split-lede">Preencha os dados de quem vai cuidar do primeiro acesso.</p>
+        {% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <form class="auth-split-form auth-split-register-form" method="post" novalidate>
+          {% csrf_token %}
+          {% include "componentes/campo.html" with campo=form.nome_escola %}
+          {% include "componentes/campo.html" with campo=form.nome_responsavel %}
+          {% include "componentes/campo.html" with campo=form.email %}
+          {% include "componentes/campo.html" with campo=form.senha %}
+          {% include "componentes/campo.html" with campo=form.confirmar_senha %}
+          <div class="honeypot" aria-hidden="true">{{ form.website }}</div>
+          <button class="button button-primary" type="submit">Criar acesso <span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="auth-split-switch">Já tem acesso? <a href="{% url 'entrar' %}">Entrar</a></p>
+      </div>
     </section>
   </div>
 </main>
