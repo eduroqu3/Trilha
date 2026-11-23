@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -190,6 +190,15 @@ def questionario_editar(request, modelo_id):
             return redirect("coordenacao_questionarios")
         elif "mover" in request.POST:
             _mover_pergunta(modelo, int(request.POST["pergunta_id"]), request.POST["mover"])
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                perguntas_ordenadas = modelo.perguntas_modelo.order_by("ordem", "pk")
+                return JsonResponse(
+                    {
+                        "ok": True,
+                        "message": "Pergunta reordenada.",
+                        "ordens": [{"id": pergunta.pk, "ordem": pergunta.ordem} for pergunta in perguntas_ordenadas],
+                    }
+                )
     return render(request, "coordenacao/questionario_editar.html", {"modelo": modelo, "perguntas": modelo.perguntas_modelo.all()})
 
 

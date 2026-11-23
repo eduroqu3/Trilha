@@ -1,4 +1,4 @@
-{% include "componentes/acoes_conta.html" %}
+{% include "componentes/acoes_conta.html" with hide_back=True %}
 <nav class="coord-nav" aria-label="Gestão da escola">
   <a href="{% url 'coordenacao_usuarios' %}">Usuários</a>
   <a href="{% url 'coordenacao_turmas' %}">Turmas e Disciplinas</a>

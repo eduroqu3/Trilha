@@ -425,6 +425,8 @@ h1, h2, blockquote { margin: 0; font-family: var(--serif); font-weight: 400; let
 .danger-button { color: #9d4d37; }
 .danger-button:hover { color: #743626; }
 .questionnaire-page-actions { margin-bottom: 22px; }
+.ajax-status { margin: 14px 0 0; padding: 10px 13px; border-left: 3px solid var(--deep); color: var(--dark); background: var(--pale); font-size: 12px; }
+.ajax-status-error { border-left-color: #c8765a; background: #f7e7d7; }
 .question-editor-list { margin-top: 18px; }
 .question-editor-item { display: grid !important; grid-template-columns: minmax(0, 1fr) auto; align-items: start !important; gap: 15px 22px !important; }
 .question-editor-summary { min-width: 0; }
@@ -495,6 +497,8 @@ h1, h2, blockquote { margin: 0; font-family: var(--serif); font-weight: 400; let
 .consent-field + .client-invalid-message { margin-top: -17px; }
 .honeypot { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden !important; }
 .site-messages { padding: 9px 20px; color: var(--white); background: var(--deep); font-size: 12px; text-align: center; transition: opacity .3s ease, transform .3s ease; }
+.site-messages-error { color: var(--dark); background: #f7e7d7; border-bottom: 2px solid #c8765a; }
+.site-messages-warning { color: var(--dark); background: #fff1cf; border-bottom: 2px solid var(--mustard); }
 .site-messages p { margin: 0; }
 .site-messages.is-hidden { opacity: 0; transform: translateY(-6px); pointer-events: none; }
 @media (max-width: 760px) {

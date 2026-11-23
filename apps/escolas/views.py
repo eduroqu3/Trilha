@@ -171,7 +171,7 @@ def importar_professores_csv(request):
     if not form.is_valid():
         for erros in form.errors.values():
             for erro in erros:
-                messages.error(request, f"Erro ao importar professores: {erro}")
+                messages.error(request, f"Não foi possível importar o CSV de professores: {erro}")
         return redirect("coordenacao_usuarios")
     return _resultado_importacao(
         request,
@@ -222,7 +222,7 @@ def importar_alunos_csv(request):
     if not form.is_valid():
         for erros in form.errors.values():
             for erro in erros:
-                messages.error(request, f"Erro ao importar alunos: {erro}")
+                messages.error(request, f"Não foi possível importar o CSV de alunos: {erro}")
         return redirect("coordenacao_usuarios")
     return _resultado_importacao(
         request,

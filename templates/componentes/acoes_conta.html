@@ -1,6 +1,6 @@
 <div class="account-actions" style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 28px;" aria-label="Ações da conta">
   <div style="display: inline-flex; align-items: center; min-height: 24px;">
-    {% if request.resolver_match.url_name != "coordenacao" and request.resolver_match.url_name != "coordenacao_usuarios" %}
+    {% if not hide_back and request.resolver_match.url_name != "coordenacao" and request.resolver_match.url_name != "coordenacao_usuarios" %}
       <a class="auth-back system-back" href="{{ voltar_url }}" style="display: inline-flex; align-items: center; line-height: 1;"><span aria-hidden="true">←</span> Voltar</a>
     {% endif %}
   </div>

@@ -16,7 +16,7 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  {% if messages %}<div class="site-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
+  {% if messages %}<div class="site-messages{% for message in messages %}{% if message.tags %} site-messages-{{ message.tags }}{% endif %}{% endfor %}" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
   {% block content %}{% endblock %}
 </body>
 </html>
