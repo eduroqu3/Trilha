@@ -1,5 +1,6 @@
 import pytest
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 
 from apps.avaliacoes.models import (
     CicloAvaliacao,
@@ -12,12 +13,24 @@ from apps.avaliacoes.services import (
     criar_modelo_padrao,
     duplicar_modelo,
 )
+from apps.contas.models import Usuario
 from apps.escolas.models import Escola
 
 
 @pytest.fixture
 def escolas(db):
     return Escola.objects.create(nome="Escola V2 A"), Escola.objects.create(nome="Escola V2 B")
+
+
+@pytest.fixture
+def coordenador(escolas):
+    return Usuario.objects.create_user(
+        email="coordenador-v2@example.com",
+        password="Senha-forte-123!",
+        nome="Coordenação V2",
+        role=Usuario.Role.COORDENACAO,
+        escola=escolas[0],
+    )
 
 
 @pytest.mark.django_db
@@ -128,3 +141,71 @@ def test_exclusao_de_modelo_personalizado_remove_suas_perguntas():
     modelo_id = modelo.pk
     modelo.delete()
     assert not ModeloQuestionario.objects.filter(pk=modelo_id).exists()
+
+
+@pytest.mark.django_db
+def test_view_crud_ordena_edita_e_remove_perguntas(client, coordenador):
+    modelo = ModeloQuestionario.objects.create(escola=coordenador.escola, nome="CRUD")
+    perguntas = [
+        PerguntaModelo.objects.create(
+            modelo=modelo,
+            texto=f"Pergunta {ordem}",
+            tipo=PerguntaModelo.Tipo.ESCALA_1_5,
+            ordem=ordem,
+        )
+        for ordem in range(1, 4)
+    ]
+    client.force_login(coordenador)
+    url = reverse("coordenacao_questionario_editar", args=(modelo.pk,))
+    resposta = client.post(url, {"pergunta_id": perguntas[0].pk, "mover": "descer"})
+    assert resposta.status_code == 200
+    assert list(modelo.perguntas_modelo.values_list("texto", flat=True)) == ["Pergunta 2", "Pergunta 1", "Pergunta 3"]
+    resposta = client.post(
+        url,
+        {
+            "pergunta_id": perguntas[1].pk,
+            "editar": "Salvar pergunta",
+            "texto": "Pergunta revisada",
+            "tipo": PerguntaModelo.Tipo.TEXTO,
+            "dimensao": "",
+            "obrigatoria": "on",
+        },
+    )
+    assert resposta.status_code == 200
+    assert PerguntaModelo.objects.get(pk=perguntas[1].pk).texto == "Pergunta revisada"
+    client.post(url, {"pergunta_id": perguntas[2].pk, "remover": "Remover"})
+    assert list(modelo.perguntas_modelo.values_list("ordem", flat=True)) == [1, 2]
+
+
+@pytest.mark.django_db
+def test_view_bloqueia_limites_de_15_perguntas_e_3_textos(client, coordenador):
+    modelo = ModeloQuestionario.objects.create(escola=coordenador.escola, nome="Limites")
+    PerguntaModelo.objects.bulk_create(
+        [
+            PerguntaModelo(
+                modelo=modelo,
+                texto=f"Escala {ordem}",
+                tipo=PerguntaModelo.Tipo.ESCALA_1_5,
+                ordem=ordem,
+            )
+            for ordem in range(1, 16)
+        ]
+    )
+    client.force_login(coordenador)
+    url = reverse("coordenacao_questionario_editar", args=(modelo.pk,))
+    client.post(url, {"adicionar": "Adicionar", "texto": "Excedente", "tipo": PerguntaModelo.Tipo.ESCALA_1_5})
+    assert modelo.perguntas_modelo.count() == 15
+    modelo.perguntas_modelo.all().delete()
+    PerguntaModelo.objects.bulk_create(
+        [
+            PerguntaModelo(
+                modelo=modelo,
+                texto=f"Texto {ordem}",
+                tipo=PerguntaModelo.Tipo.TEXTO,
+                ordem=ordem,
+            )
+            for ordem in range(1, 4)
+        ]
+    )
+    client.post(url, {"adicionar": "Adicionar", "texto": "Quarto texto", "tipo": PerguntaModelo.Tipo.TEXTO})
+    assert modelo.perguntas_modelo.count() == 3

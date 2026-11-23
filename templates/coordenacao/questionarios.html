@@ -6,7 +6,7 @@
   <p class="eyebrow"><span></span>MODELOS DE ESCUTA</p><h1>Questionários</h1>
   <p class="auth-lede">Crie modelos próprios para sua escola. O questionário usado em um ciclo é sempre guardado como snapshot.</p>
   {% include "coordenacao/_nav.html" %}
-  <div class="coord-columns">
+  <div class="questionnaire-models-stack">
     <section class="auth-card coord-card model-create-card"><h2>Novo modelo</h2>
       <form method="post" class="coord-form">{% csrf_token %}
         <div class="form-field"><label for="nome">Nome</label><input id="nome" name="nome" required maxlength="180"></div>

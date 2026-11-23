@@ -27,7 +27,6 @@ from .services import (
     duplicar_modelo,
     publicar_ciclo,
     respostas_pendentes,
-    validar_modelo_completo,
 )
 
 COORDENACAO = Usuario.Role.COORDENACAO
@@ -85,6 +84,46 @@ def questionarios(request):
     return render(request, "coordenacao/questionarios.html", {"modelos": modelos})
 
 
+def _mensagens_validacao(exc):
+    return " ".join(exc.messages)
+
+
+def _limite_para_pergunta(modelo, tipo, atual=None):
+    perguntas = modelo.perguntas_modelo.all()
+    if atual is not None:
+        perguntas = perguntas.exclude(pk=atual.pk)
+    if atual is None and perguntas.count() >= 15:
+        raise ValidationError("O modelo já tem 15 perguntas, que é o limite permitido.")
+    if tipo == PerguntaModelo.Tipo.TEXTO and perguntas.filter(tipo=PerguntaModelo.Tipo.TEXTO).count() >= 3:
+        raise ValidationError("O modelo já tem 3 perguntas de texto, que é o limite permitido.")
+
+
+@transaction.atomic
+def _mover_pergunta(modelo, pergunta_id, direcao):
+    perguntas = list(modelo.perguntas_modelo.select_for_update().order_by("ordem", "pk"))
+    indice = next((i for i, pergunta in enumerate(perguntas) if pergunta.pk == pergunta_id), None)
+    if indice is None:
+        raise Http404
+    destino = indice - 1 if direcao == "subir" else indice + 1
+    if destino < 0 or destino >= len(perguntas):
+        return
+    atual = perguntas[indice]
+    outra = perguntas[destino]
+    ordem_atual, ordem_outra = atual.ordem, outra.ordem
+    type(atual).objects.filter(pk=atual.pk).update(ordem=0)
+    type(atual).objects.filter(pk=outra.pk).update(ordem=ordem_atual)
+    type(atual).objects.filter(pk=atual.pk).update(ordem=ordem_outra)
+
+
+@transaction.atomic
+def _normalizar_ordens(modelo):
+    perguntas = list(modelo.perguntas_modelo.order_by("ordem", "pk"))
+    for indice, pergunta in enumerate(perguntas, 1):
+        type(pergunta).objects.filter(pk=pergunta.pk).update(ordem=100 + indice)
+    for indice, pergunta in enumerate(perguntas, 1):
+        type(pergunta).objects.filter(pk=pergunta.pk).update(ordem=indice)
+
+
 @papel_requerido(COORDENACAO)
 def questionario_editar(request, modelo_id):
     modelo = get_object_or_404(ModeloQuestionario.objects.filter(escola=request.user.escola), pk=modelo_id)
@@ -95,28 +134,62 @@ def questionario_editar(request, modelo_id):
         if "adicionar" in request.POST:
             try:
                 tipo = request.POST.get("tipo", PerguntaModelo.Tipo.ESCALA_1_5)
+                _limite_para_pergunta(modelo, tipo)
                 opcoes = [x.strip() for x in request.POST.get("opcoes", "").splitlines() if x.strip()]
-                pergunta = PerguntaModelo(modelo=modelo, texto=request.POST.get("texto", "").strip(), tipo=tipo, dimensao=request.POST.get("dimensao", "").strip(), ordem=modelo.perguntas_modelo.count() + 1, obrigatoria="opcional" not in request.POST, opcoes=opcoes)
+                if tipo != PerguntaModelo.Tipo.ESCOLHA_UNICA:
+                    opcoes = []
+                pergunta = PerguntaModelo(
+                    modelo=modelo,
+                    texto=request.POST.get("texto", "").strip(),
+                    tipo=tipo,
+                    dimensao=request.POST.get("dimensao", "").strip(),
+                    ordem=modelo.perguntas_modelo.count() + 1,
+                    obrigatoria="obrigatoria" in request.POST,
+                    opcoes=opcoes,
+                )
                 pergunta.save()
-                validar_modelo_completo(modelo)
                 messages.success(request, "Pergunta adicionada.")
             except ValidationError as exc:
-                if "pk" in locals() and pergunta.pk:
-                    pergunta.delete()
-                messages.error(request, " ".join(exc.messages))
+                messages.error(request, _mensagens_validacao(exc))
+        elif "editar" in request.POST:
+            pergunta = get_object_or_404(modelo.perguntas_modelo.all(), pk=request.POST.get("pergunta_id"))
+            try:
+                tipo = request.POST.get("tipo", PerguntaModelo.Tipo.ESCALA_1_5)
+                _limite_para_pergunta(modelo, tipo, atual=pergunta)
+                opcoes = [x.strip() for x in request.POST.get("opcoes", "").splitlines() if x.strip()]
+                if tipo != PerguntaModelo.Tipo.ESCOLHA_UNICA:
+                    opcoes = []
+                pergunta.texto = request.POST.get("texto", "").strip()
+                pergunta.tipo = tipo
+                pergunta.dimensao = request.POST.get("dimensao", "").strip()
+                pergunta.obrigatoria = "obrigatoria" in request.POST
+                pergunta.opcoes = opcoes
+                pergunta.save()
+                messages.success(request, "Pergunta atualizada.")
+            except ValidationError as exc:
+                messages.error(request, _mensagens_validacao(exc))
+        elif "remover" in request.POST:
+            pergunta = get_object_or_404(modelo.perguntas_modelo.all(), pk=request.POST.get("pergunta_id"))
+            pergunta.delete()
+            _normalizar_ordens(modelo)
+            messages.success(request, "Pergunta removida.")
         elif "arquivar" in request.POST:
             modelo.ativo = False
             modelo.save(update_fields=("ativo",))
             messages.success(request, "Modelo arquivado.")
             return redirect("coordenacao_questionarios")
-        elif "subir" in request.POST or "descer" in request.POST:
-            pergunta = get_object_or_404(modelo.perguntas_modelo.all(), pk=request.POST.get("pergunta_id"))
-            delta = -1 if "subir" in request.POST else 1
-            outra = modelo.perguntas_modelo.filter(ordem=pergunta.ordem + delta).first()
-            if outra:
-                pergunta.ordem, outra.ordem = outra.ordem, pergunta.ordem
-                pergunta.save(update_fields=("ordem",))
-                outra.save(update_fields=("ordem",))
+        elif "excluir_modelo" in request.POST:
+            try:
+                modelo.delete()
+            except ProtectedError:
+                messages.error(request, "Este modelo já foi usado em um ciclo e não pode ser excluído. Arquive-o para não aparecer em novos ciclos.")
+            except ValidationError as exc:
+                messages.error(request, _mensagens_validacao(exc))
+            else:
+                messages.success(request, "Modelo excluído.")
+            return redirect("coordenacao_questionarios")
+        elif "mover" in request.POST:
+            _mover_pergunta(modelo, int(request.POST["pergunta_id"]), request.POST["mover"])
     return render(request, "coordenacao/questionario_editar.html", {"modelo": modelo, "perguntas": modelo.perguntas_modelo.all()})
 
 
