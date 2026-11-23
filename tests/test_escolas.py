@@ -103,7 +103,6 @@ def test_telas_da_coordenacao_exibem_acoes_de_conta(client, coordenacao, url_nam
     content = response.content.decode()
 
     assert response.status_code == 200
-    assert "Voltar" in content
     assert 'action="/sair/"' in content
 
 

@@ -1,3 +1,4 @@
+import re
 import uuid
 
 from django.core.exceptions import ValidationError
@@ -27,12 +28,19 @@ TERMOS_SENSIVEIS = (
 
 def validar_texto_pergunta(texto):
     normalizado = " ".join(texto.lower().split())
-    encontrados = [termo for termo in TERMOS_SENSIVEIS if termo in normalizado]
-    if encontrados:
-        raise ValidationError(
-            "Perguntas não podem solicitar dados pessoais ou demográficos "
-            f"(termo identificado: {encontrados[0]}). A escuta deve permanecer anônima."
-        )
+    palavras = set(re.findall(r"\b\w+\b", normalizado))
+    for termo in TERMOS_SENSIVEIS:
+        if " " in termo or "-" in termo:
+            if termo in normalizado:
+                raise ValidationError(
+                    "Perguntas não podem solicitar dados pessoais ou demográficos "
+                    f"(termo identificado: {termo}). A escuta deve permanecer anônima."
+                )
+        elif termo in palavras:
+            raise ValidationError(
+                "Perguntas não podem solicitar dados pessoais ou demográficos "
+                f"(termo identificado: {termo}). A escuta deve permanecer anônima."
+            )
 
 
 class ModeloQuestionario(models.Model):
@@ -172,17 +180,15 @@ class Pergunta(models.Model):
         return self.texto
 
     def save(self, *args, **kwargs):
-        if self.pk and self.ciclo.status != CicloAvaliacao.Status.ABERTO:
-            raise ValidationError("As perguntas de um ciclo encerrado estão travadas.")
+        if self.pk:
+            raise ValidationError("As perguntas de um ciclo aberto ou fechado estão travadas.")
         validar_texto_pergunta(self.texto)
         if self.tipo == self.Tipo.ESCOLHA_UNICA and not 2 <= len(self.opcoes or []) <= 6:
             raise ValidationError("Escolha única deve ter de 2 a 6 opções.")
         return super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        if self.ciclo.status != CicloAvaliacao.Status.ABERTO:
-            raise ValidationError("As perguntas de um ciclo encerrado estão travadas.")
-        return super().delete(*args, **kwargs)
+        raise ValidationError("As perguntas de um ciclo não podem ser removidas.")
 
 
 class Participacao(models.Model):
