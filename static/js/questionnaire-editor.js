@@ -30,9 +30,18 @@
         const response = await fetch(form.action || window.location.href, {
           method: "POST",
           body: new FormData(form),
-          headers: { "X-Requested-With": "XMLHttpRequest" },
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Accept: "application/json",
+          },
           credentials: "same-origin",
         });
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+          throw new Error(response.redirected
+            ? "Sua sessão expirou. Atualize a página e entre novamente."
+            : "Não foi possível reordenar a pergunta. Atualize a página e tente novamente.");
+        }
         const data = await response.json();
         if (!response.ok || !data.ok) throw new Error(data.message || "Não foi possível reordenar a pergunta.");
         const items = new Map([...list.querySelectorAll("[data-question-item]")].map((item) => [item.dataset.questionId, item]));

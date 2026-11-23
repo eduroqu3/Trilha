@@ -178,6 +178,29 @@ def test_view_crud_ordena_edita_e_remove_perguntas(client, coordenador):
 
 
 @pytest.mark.django_db
+def test_view_reordenacao_ajax_retorna_json(client, coordenador):
+    modelo = ModeloQuestionario.objects.create(escola=coordenador.escola, nome="AJAX")
+    perguntas = [
+        PerguntaModelo.objects.create(
+            modelo=modelo,
+            texto=f"Pergunta {ordem}",
+            tipo=PerguntaModelo.Tipo.ESCALA_1_5,
+            ordem=ordem,
+        )
+        for ordem in range(1, 3)
+    ]
+    client.force_login(coordenador)
+    resposta = client.post(
+        reverse("coordenacao_questionario_editar", args=(modelo.pk,)),
+        {"pergunta_id": perguntas[0].pk, "mover": "descer"},
+        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        HTTP_ACCEPT="application/json",
+    )
+    assert resposta.status_code == 200
+    assert resposta.json()["ok"] is True
+
+
+@pytest.mark.django_db
 def test_view_bloqueia_limites_de_15_perguntas_e_3_textos(client, coordenador):
     modelo = ModeloQuestionario.objects.create(escola=coordenador.escola, nome="Limites")
     PerguntaModelo.objects.bulk_create(

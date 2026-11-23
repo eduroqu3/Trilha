@@ -211,6 +211,15 @@ def test_importacao_csv_valida_alunos_e_turma_desconhecida(coordenacao, client):
     assert "turma não encontrada" in response.content.decode()
 
 
+@pytest.mark.parametrize("rota", ["importar_professores", "importar_alunos"])
+def test_importacao_csv_sem_arquivo_exibe_campo_obrigatorio(client, coordenacao, rota):
+    login_coord(client, coordenacao)
+    response = client.post(reverse(rota), {}, follow=True)
+    conteudo = response.content.decode()
+    assert "Este campo é obrigatório." in conteudo
+    assert "Não foi possível importar o CSV" not in conteudo
+
+
 def test_vinculo_duplicado_e_rejeitado(client, coordenacao):
     professor = Usuario.objects.create_user(
         email="prof@example.com",

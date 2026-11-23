@@ -171,7 +171,7 @@ def importar_professores_csv(request):
     if not form.is_valid():
         for erros in form.errors.values():
             for erro in erros:
-                messages.error(request, f"Não foi possível importar o CSV de professores: {erro}")
+                messages.error(request, erro)
         return redirect("coordenacao_usuarios")
     return _resultado_importacao(
         request,
@@ -222,7 +222,7 @@ def importar_alunos_csv(request):
     if not form.is_valid():
         for erros in form.errors.values():
             for erro in erros:
-                messages.error(request, f"Não foi possível importar o CSV de alunos: {erro}")
+                messages.error(request, erro)
         return redirect("coordenacao_usuarios")
     return _resultado_importacao(
         request,
@@ -238,8 +238,15 @@ def vinculos(request):
         form.save()
         messages.success(request, "Vínculo criado com sucesso.")
         return redirect("coordenacao_vinculos")
-    vinculos_qs = Vinculo.objects.para_usuario(request.user).select_related(
-        "professor", "turma", "disciplina"
+    vinculos_qs = (
+        Vinculo.objects.para_usuario(request.user)
+        .select_related("professor", "turma", "disciplina")
+        .only(
+            "id",
+            "professor__nome",
+            "turma__nome",
+            "disciplina__nome",
+        )
     )
     return render(
         request,

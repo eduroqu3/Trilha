@@ -190,7 +190,11 @@ def questionario_editar(request, modelo_id):
             return redirect("coordenacao_questionarios")
         elif "mover" in request.POST:
             _mover_pergunta(modelo, int(request.POST["pergunta_id"]), request.POST["mover"])
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            wants_json = (
+                request.headers.get("x-requested-with") == "XMLHttpRequest"
+                or "application/json" in request.headers.get("accept", "")
+            )
+            if wants_json:
                 perguntas_ordenadas = modelo.perguntas_modelo.order_by("ordem", "pk")
                 return JsonResponse(
                     {
