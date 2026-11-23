@@ -3,53 +3,28 @@
 {% block title %}Entrar — Trilha{% endblock %}
 {% block content %}
 <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-<div class="auth-split-wrapper">
-  <main id="conteudo" class="auth-split-card">
-    <!-- Painel Visual da Esquerda (Inspirado na referência artística) -->
-    <aside class="auth-split-banner" aria-hidden="true">
-      <div class="auth-split-banner-texture"></div>
-      <img class="auth-split-banner-art" src="{% static 'img/hero.svg' %}" alt="">
-      <div class="auth-split-banner-content">
-        <span class="auth-split-banner-badge">Escuta Pedagógica</span>
-        <h2>Onde a voz de cada aula ganha <em>caminho.</em></h2>
-        <p>Um espaço seguro e respeitoso para acompanhar a escuta, compartilhar percepções e fortalecer a aprendizagem.</p>
-      </div>
-      <div class="auth-split-banner-footer">
-        <p><span style="color: var(--mustard); font-size: 16px;">✳</span> Anonimato protegido por desenho em cada resposta.</p>
-      </div>
-    </aside>
-
-    <!-- Painel do Formulário da Direita -->
-    <section class="auth-split-form-panel" aria-labelledby="login-heading">
-      <div>
-        <div class="auth-split-header">
-          <a class="auth-split-back" href="{% url 'home' %}"><span aria-hidden="true">←</span> Voltar ao início</a>
-          <p class="auth-split-eyebrow">Acessar sua conta</p>
-          <h1 id="login-heading" class="auth-split-title">Entrar na Trilha</h1>
-        </div>
-
-        {% if form.non_field_errors %}
-          <div class="form-alert" role="alert" style="margin-bottom: 20px;">{{ form.non_field_errors }}</div>
-        {% endif %}
-
-        <form method="post" class="auth-split-form" novalidate>
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ next }}">
-          {% include "componentes/campo.html" with campo=form.email %}
-          {% include "componentes/campo.html" with campo=form.senha %}
-          <button class="button button-primary" type="submit">Entrar na Trilha <span aria-hidden="true">↗</span></button>
-        </form>
-      </div>
-
-      <div class="auth-split-footer">
-        <p class="auth-split-switch">Sua escola ainda não está aqui? <a href="{% url 'cadastro_escola' %}">Cadastrar minha escola</a></p>
-        <div class="auth-split-brand-bottom">
-          <a href="{% url 'home' %}" aria-label="trilha — início">
-            <img src="{% static 'img/logo-completo.png' %}" alt="trilha">
-          </a>
-        </div>
-      </div>
+<div class="site-container auth-topbar"><a class="auth-back" href="{% url 'home' %}"><span aria-hidden="true">←</span> Voltar ao início</a></div>
+<main id="conteudo" class="auth-page">
+  <div class="site-container auth-layout auth-layout-compact">
+    <section class="auth-intro">
+      <a class="brand auth-brand" href="{% url 'home' %}" aria-label="trilha — início"><img class="auth-logo" src="{% static 'img/logo-completo.png' %}" alt="trilha"></a>
+      <p class="eyebrow"><span></span>VOLTAR À CONVERSA</p>
+      <h1>Um caminho para cada <em>voz.</em></h1>
+      <p>Entre no seu espaço para acompanhar a escuta, compartilhar uma percepção ou organizar o próximo ciclo.</p>
+      <p class="auth-quote"><span aria-hidden="true">✳</span> A escuta fica mais útil quando cada pessoa sabe como participar.</p>
     </section>
-  </main>
-</div>
+    <section class="auth-card" aria-labelledby="login-heading">
+      <h2 id="login-heading">Entrar</h2>
+      {% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% include "componentes/campo.html" with campo=form.email %}
+        {% include "componentes/campo.html" with campo=form.senha %}
+        <button class="button button-primary" type="submit">Entrar <span aria-hidden="true">↗</span></button>
+      </form>
+      <p class="auth-switch">Sua escola ainda não está aqui? <a href="{% url 'cadastro_escola' %}">Cadastrar minha escola</a></p>
+    </section>
+  </div>
+</main>
 {% endblock %}
