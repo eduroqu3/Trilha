@@ -24,12 +24,14 @@
       event.preventDefault();
       const submitter = event.submitter;
       if (!submitter || submitter.disabled) return;
+      const formData = new FormData(form);
+      if (submitter.name && submitter.value) formData.set(submitter.name, submitter.value);
       const buttons = form.querySelectorAll("button");
       buttons.forEach((button) => { button.disabled = true; });
       try {
         const response = await fetch(form.action || window.location.href, {
           method: "POST",
-          body: new FormData(form),
+          body: formData,
           headers: {
             "X-Requested-With": "XMLHttpRequest",
             Accept: "application/json",
