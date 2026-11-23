@@ -25,8 +25,7 @@ O projeto usa templates Django, sessões nativas, PostgreSQL no Supabase e asset
 - [x] Página pública explicando a proteção e os limites do anonimato.
 - [x] RLS habilitado nas tabelas públicas do Supabase, sem policies criadas pela aplicação.
 - [x] Testes de instalação, fluxo integrado, permissões, isolamento, anonimato, acessibilidade e produção local.
-- [ ] Editor customizável de perguntas — fora do escopo atual.
-- [ ] Ranking ou comparação entre professores — não será implementado.
+- [x] Editor customizável de perguntas.
 
 ## Tecnologias utilizadas
 
