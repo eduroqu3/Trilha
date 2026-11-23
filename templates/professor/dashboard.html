@@ -22,6 +22,14 @@
                   </div>
                 {% endfor %}
               </div>
+              {% if resultado.distribuicoes %}
+                <div class="approved-comments">
+                  <h3>Distribuições das escolhas</h3>
+                  {% for pergunta_id, opcoes in resultado.distribuicoes.items %}
+                    <ul class="comment-list">{% for opcao, total in opcoes.items %}<li>{{ opcao }}: {{ total }}</li>{% endfor %}</ul>
+                  {% endfor %}
+                </div>
+              {% endif %}
               {% if resultado.comentarios %}
                 <div class="approved-comments">
                   <h3>O que foi compartilhado</h3>

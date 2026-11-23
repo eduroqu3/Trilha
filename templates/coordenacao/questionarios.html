@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Questionários — Trilha{% endblock %}
+{% block content %}
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<main id="conteudo" class="auth-page coord-page"><div class="site-container coord-layout">
+  <p class="eyebrow"><span></span>MODELOS DE ESCUTA</p><h1>Questionários</h1>
+  <p class="auth-lede">Crie modelos próprios para sua escola. O questionário usado em um ciclo é sempre guardado como snapshot.</p>
+  {% include "coordenacao/_nav.html" %}
+  <div class="coord-columns">
+    <section class="auth-card coord-card"><h2>Novo modelo</h2>
+      <form method="post" class="coord-form">{% csrf_token %}
+        <label for="nome">Nome</label><input id="nome" name="nome" required maxlength="180">
+        <label for="descricao">Descrição</label><textarea id="descricao" name="descricao" rows="3"></textarea>
+        <button class="button button-primary" type="submit">Criar modelo</button>
+      </form>
+    </section>
+    <section class="auth-card coord-card"><h2>Modelos da escola</h2>
+      {% if modelos %}<ul class="coord-list">{% for modelo in modelos %}<li><div><strong>{{ modelo.nome }}</strong><small>{% if modelo.padrao %}Padrão da Trilha · {% endif %}{{ modelo.perguntas_modelo.count }} perguntas · {% if modelo.ativo %}Ativo{% else %}Arquivado{% endif %}</small></div><div class="cycle-actions"><a class="text-button" href="{% url 'coordenacao_questionario_preview' modelo.id %}">Pré-visualizar</a>{% if not modelo.padrao %}<a class="text-button" href="{% url 'coordenacao_questionario_editar' modelo.id %}">Editar</a><form method="post" action="{% url 'coordenacao_questionario_duplicar' modelo.id %}">{% csrf_token %}<button class="text-button" type="submit">Duplicar</button></form>{% endif %}</div></li>{% endfor %}</ul>{% else %}<p class="empty-state">Nenhum modelo criado.</p>{% endif %}
+    </section>
+  </div>
+</div></main>
+{% endblock %}

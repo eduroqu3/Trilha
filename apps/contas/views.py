@@ -172,6 +172,7 @@ def professor(request):
                 "ciclo": resumo.ciclo,
                 "vinculo": vinculo,
                 "medias": medias,
+                "distribuicoes": resumo.distribuicoes_por_pergunta,
                 "comentarios": comentarios,
             }
         )
@@ -339,4 +340,3 @@ def resetar_senha_usuario(request, pk):
         f"Nova senha provisória gerada para {usuario_alvo.nome}: {nova_senha}",
     )
     return redirect("coordenacao_usuarios")
-

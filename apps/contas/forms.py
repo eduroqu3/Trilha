@@ -37,6 +37,9 @@ class CadastroEscolaForm(forms.Form):
 
     def save(self):
         escola = Escola.objects.create(nome=self.cleaned_data["nome_escola"].strip())
+        from apps.avaliacoes.services import criar_modelo_padrao
+
+        criar_modelo_padrao(escola)
         usuario = Usuario.objects.create_user(
             email=self.cleaned_data["email"],
             password=self.cleaned_data["senha"],

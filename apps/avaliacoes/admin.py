@@ -3,9 +3,12 @@ from django.contrib import admin
 from .models import (
     Avaliacao,
     CicloAvaliacao,
+    ModeloQuestionario,
     Participacao,
     Pergunta,
+    PerguntaModelo,
     RespostaEscala,
+    RespostaEscolhaUnica,
     RespostaTexto,
     ResumoVinculo,
 )
@@ -16,6 +19,18 @@ class CicloAvaliacaoAdmin(admin.ModelAdmin):
     list_display = ("nome", "escola", "status")
     list_filter = ("status", "escola")
     search_fields = ("nome", "escola__nome")
+
+
+@admin.register(ModeloQuestionario)
+class ModeloQuestionarioAdmin(admin.ModelAdmin):
+    list_display = ("nome", "escola", "ativo", "padrao")
+    list_filter = ("ativo", "padrao", "escola")
+
+
+@admin.register(PerguntaModelo)
+class PerguntaModeloAdmin(admin.ModelAdmin):
+    list_display = ("texto", "modelo", "tipo", "ordem", "obrigatoria")
+    list_filter = ("tipo", "modelo__escola")
 
 
 @admin.register(Pergunta)
@@ -57,6 +72,19 @@ class RespostaEscalaAdmin(ConteudoAnonimoAdminMixin):
     list_display = ("avaliacao", "pergunta", "valor")
     list_filter = ("pergunta__ciclo__escola", "pergunta__tipo")
     readonly_fields = ("avaliacao", "pergunta", "valor")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(RespostaEscolhaUnica)
+class RespostaEscolhaUnicaAdmin(ConteudoAnonimoAdminMixin):
+    list_display = ("avaliacao", "pergunta", "opcao")
+    list_filter = ("pergunta__ciclo__escola",)
+    readonly_fields = ("avaliacao", "pergunta", "opcao")
 
     def has_add_permission(self, request):
         return False

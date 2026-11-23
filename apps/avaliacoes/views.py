@@ -1,7 +1,9 @@
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from apps.contas.decorators import papel_requerido
 from apps.contas.models import Usuario
@@ -11,15 +13,20 @@ from .forms import AvaliacaoForm, CicloAvaliacaoForm
 from .models import (
     Avaliacao,
     CicloAvaliacao,
+    ModeloQuestionario,
     Participacao,
     Pergunta,
+    PerguntaModelo,
     RespostaEscala,
+    RespostaEscolhaUnica,
     RespostaTexto,
 )
 from .services import (
     criar_ciclo_com_questionario,
+    duplicar_modelo,
     publicar_ciclo,
     respostas_pendentes,
+    validar_modelo_completo,
 )
 
 COORDENACAO = Usuario.Role.COORDENACAO
@@ -27,38 +34,17 @@ ALUNO = Usuario.Role.ALUNO
 
 
 def _ciclo_aberto(user):
-    return (
-        CicloAvaliacao.objects.para_usuario(user)
-        .filter(status=CicloAvaliacao.Status.ABERTO)
-        .first()
-    )
+    return CicloAvaliacao.objects.para_usuario(user).filter(status=CicloAvaliacao.Status.ABERTO).first()
 
 
 def _adesao_por_turma(ciclo, user):
     turmas = Turma.objects.para_usuario(user).prefetch_related("matriculas")
-    return [
-        {
-            "turma": turma,
-            "total": turma.matriculas.count(),
-            "respondidos": (
-                Participacao.objects.filter(
-                    ciclo=ciclo, vinculo__turma=turma
-                )
-                .values("aluno_id")
-                .distinct()
-                .count()
-            ),
-        }
-        for turma in turmas
-    ]
+    return [{"turma": turma, "total": turma.matriculas.count(), "respondidos": Participacao.objects.filter(ciclo=ciclo, vinculo__turma=turma).values("aluno_id").distinct().count()} for turma in turmas]
 
 
 def _contexto_ciclos(user):
-    ciclos = list(CicloAvaliacao.objects.para_usuario(user))
-    pendentes = RespostaTexto.objects.filter(
-        avaliacao__ciclo__escola_id=user.escola_id,
-        status_moderacao=RespostaTexto.StatusModeracao.PENDENTE,
-    ).exclude(texto="").order_by("?")
+    ciclos = list(CicloAvaliacao.objects.para_usuario(user).select_related("modelo_questionario"))
+    pendentes = RespostaTexto.objects.filter(avaliacao__ciclo__escola_id=user.escola_id, status_moderacao=RespostaTexto.StatusModeracao.PENDENTE).exclude(texto="").order_by("?")
     for ciclo in ciclos:
         ciclo.adesao_por_turma = _adesao_por_turma(ciclo, user)
         ciclo.pendentes_moderacao = pendentes.filter(avaliacao__ciclo=ciclo)
@@ -67,43 +53,101 @@ def _contexto_ciclos(user):
 
 @papel_requerido(COORDENACAO)
 def ciclos(request):
-    form = CicloAvaliacaoForm(request.POST or None)
+    form = CicloAvaliacaoForm(request.user.escola, request.POST or None)
     if request.method == "POST" and form.is_valid():
         try:
-            criar_ciclo_com_questionario(request.user.escola, form.cleaned_data["nome"])
-        except IntegrityError:
-            form.add_error(
-                None,
-                "Já existe um ciclo não publicado para esta escola. Conclua esse ciclo antes de abrir outro.",
-            )
+            criar_ciclo_com_questionario(request.user.escola, form.cleaned_data["nome"], form.cleaned_data["modelo_questionario"])
+        except (IntegrityError, ValidationError) as exc:
+            form.add_error(None, str(exc) if isinstance(exc, ValidationError) else "Já existe um ciclo não publicado para esta escola.")
         else:
-            messages.success(request, "Ciclo aberto com questionário padrão.")
+            messages.success(request, "Ciclo aberto com o modelo escolhido.")
             return redirect("coordenacao_ciclos")
     ciclos_contexto, pendentes = _contexto_ciclos(request.user)
-    return render(
-        request,
-        "coordenacao/ciclos.html",
-        {
-            "form": form,
-            "ciclos": ciclos_contexto,
-            "fila_moderacao": pendentes,
-        },
-    )
+    return render(request, "coordenacao/ciclos.html", {"form": form, "ciclos": ciclos_contexto, "fila_moderacao": pendentes})
+
+
+@papel_requerido(COORDENACAO)
+def questionarios(request):
+    modelos = ModeloQuestionario.objects.filter(escola=request.user.escola).prefetch_related("perguntas_modelo")
+    if request.method == "POST":
+        nome = request.POST.get("nome", "").strip()
+        descricao = request.POST.get("descricao", "").strip()
+        if not nome:
+            messages.error(request, "Dê um nome ao modelo antes de salvar.")
+        else:
+            try:
+                modelo = ModeloQuestionario.objects.create(escola=request.user.escola, nome=nome, descricao=descricao)
+                messages.success(request, "Modelo criado. Adicione pelo menos duas escalas e cinco perguntas.")
+                return redirect("coordenacao_questionario_editar", modelo_id=modelo.pk)
+            except IntegrityError:
+                messages.error(request, "Já existe um modelo com esse nome.")
+    return render(request, "coordenacao/questionarios.html", {"modelos": modelos})
+
+
+@papel_requerido(COORDENACAO)
+def questionario_editar(request, modelo_id):
+    modelo = get_object_or_404(ModeloQuestionario.objects.filter(escola=request.user.escola), pk=modelo_id)
+    if modelo.padrao and request.method == "POST":
+        messages.error(request, "O modelo padrão não pode ser editado. Duplique-o para personalizar.")
+        return redirect("coordenacao_questionarios")
+    if request.method == "POST":
+        if "adicionar" in request.POST:
+            try:
+                tipo = request.POST.get("tipo", PerguntaModelo.Tipo.ESCALA_1_5)
+                opcoes = [x.strip() for x in request.POST.get("opcoes", "").splitlines() if x.strip()]
+                pergunta = PerguntaModelo(modelo=modelo, texto=request.POST.get("texto", "").strip(), tipo=tipo, dimensao=request.POST.get("dimensao", "").strip(), ordem=modelo.perguntas_modelo.count() + 1, obrigatoria="opcional" not in request.POST, opcoes=opcoes)
+                pergunta.save()
+                validar_modelo_completo(modelo)
+                messages.success(request, "Pergunta adicionada.")
+            except ValidationError as exc:
+                if "pk" in locals() and pergunta.pk:
+                    pergunta.delete()
+                messages.error(request, " ".join(exc.messages))
+        elif "arquivar" in request.POST:
+            modelo.ativo = False
+            modelo.save(update_fields=("ativo",))
+            messages.success(request, "Modelo arquivado.")
+            return redirect("coordenacao_questionarios")
+        elif "subir" in request.POST or "descer" in request.POST:
+            pergunta = get_object_or_404(modelo.perguntas_modelo.all(), pk=request.POST.get("pergunta_id"))
+            delta = -1 if "subir" in request.POST else 1
+            outra = modelo.perguntas_modelo.filter(ordem=pergunta.ordem + delta).first()
+            if outra:
+                pergunta.ordem, outra.ordem = outra.ordem, pergunta.ordem
+                pergunta.save(update_fields=("ordem",))
+                outra.save(update_fields=("ordem",))
+    return render(request, "coordenacao/questionario_editar.html", {"modelo": modelo, "perguntas": modelo.perguntas_modelo.all()})
+
+
+@papel_requerido(COORDENACAO)
+@require_POST
+def questionario_duplicar(request, modelo_id):
+    modelo = get_object_or_404(ModeloQuestionario.objects.filter(escola=request.user.escola), pk=modelo_id)
+    try:
+        novo = duplicar_modelo(modelo, request.user.escola, request.POST.get("nome") or None)
+    except (ValidationError, IntegrityError) as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(request, "Modelo duplicado para edição.")
+        return redirect("coordenacao_questionario_editar", modelo_id=novo.pk)
+    return redirect("coordenacao_questionarios")
+
+
+@papel_requerido(COORDENACAO)
+def questionario_preview(request, modelo_id):
+    modelo = get_object_or_404(ModeloQuestionario.objects.filter(escola=request.user.escola), pk=modelo_id)
+    return render(request, "aluno/questionario_preview.html", {"modelo": modelo, "perguntas": modelo.perguntas_modelo.all()})
 
 
 @papel_requerido(COORDENACAO)
 def encerrar_ciclo(request, ciclo_id):
     if request.method != "POST":
         return redirect("coordenacao_ciclos")
-    ciclo = get_object_or_404(
-        CicloAvaliacao.objects.para_usuario(request.user), pk=ciclo_id
-    )
+    ciclo = get_object_or_404(CicloAvaliacao.objects.para_usuario(request.user), pk=ciclo_id)
     if ciclo.status == CicloAvaliacao.Status.ABERTO:
         ciclo.status = CicloAvaliacao.Status.FECHADO
         ciclo.save(update_fields=("status",))
         messages.success(request, "Ciclo encerrado. A escuta está pronta para moderação.")
-    else:
-        messages.info(request, "Este ciclo não está aberto para encerramento.")
     return redirect("coordenacao_ciclos")
 
 
@@ -111,9 +155,7 @@ def encerrar_ciclo(request, ciclo_id):
 def publicar(request, ciclo_id):
     if request.method != "POST":
         return redirect("coordenacao_ciclos")
-    ciclo = get_object_or_404(
-        CicloAvaliacao.objects.para_usuario(request.user), pk=ciclo_id
-    )
+    ciclo = get_object_or_404(CicloAvaliacao.objects.para_usuario(request.user), pk=ciclo_id)
     if publicar_ciclo(ciclo):
         messages.success(request, "Resultados publicados com cuidado e transparência.")
     elif respostas_pendentes(ciclo).exists():
@@ -127,22 +169,11 @@ def publicar(request, ciclo_id):
 def moderar_resposta(request, resposta_id):
     if request.method != "POST":
         return redirect("coordenacao_ciclos")
-    resposta = get_object_or_404(
-        RespostaTexto.objects.filter(
-            avaliacao__ciclo__escola_id=request.user.escola_id,
-            status_moderacao=RespostaTexto.StatusModeracao.PENDENTE,
-        ),
-        pk=resposta_id,
-    )
-    acao = request.POST.get("acao")
-    novo_status = {
-        "aprovar": RespostaTexto.StatusModeracao.APROVADO,
-        "rejeitar": RespostaTexto.StatusModeracao.REJEITADO,
-    }.get(acao)
+    resposta = get_object_or_404(RespostaTexto.objects.filter(avaliacao__ciclo__escola_id=request.user.escola_id, status_moderacao=RespostaTexto.StatusModeracao.PENDENTE), pk=resposta_id)
+    novo_status = {"aprovar": RespostaTexto.StatusModeracao.APROVADO, "rejeitar": RespostaTexto.StatusModeracao.REJEITADO}.get(request.POST.get("acao"))
     if novo_status:
         resposta.status_moderacao = novo_status
         resposta.save(update_fields=("status_moderacao",))
-        messages.success(request, "Comentário moderado sem expor qualquer identificação.")
     return redirect("coordenacao_ciclos")
 
 
@@ -150,96 +181,51 @@ def _pendencias(user):
     ciclo = _ciclo_aberto(user)
     if ciclo is None:
         return None, []
-    turma_ids = (
-        Matricula.objects.para_usuario(user)
-        .filter(aluno_id=user.pk)
-        .values_list("turma_id", flat=True)
-    )
-    vinculos = list(
-        Vinculo.objects.para_usuario(user)
-        .filter(turma_id__in=turma_ids)
-        .select_related("professor", "turma", "disciplina")
-    )
-    concluidos = set(
-        Participacao.objects.para_usuario(user)
-        .filter(aluno_id=user.pk, ciclo_id=ciclo.pk)
-        .values_list("vinculo_id", flat=True)
-    )
-    return ciclo, [vinculo for vinculo in vinculos if vinculo.pk not in concluidos]
+    turma_ids = Matricula.objects.para_usuario(user).filter(aluno_id=user.pk).values_list("turma_id", flat=True)
+    vinculos = list(Vinculo.objects.para_usuario(user).filter(turma_id__in=turma_ids).select_related("professor", "turma", "disciplina"))
+    concluidos = set(Participacao.objects.para_usuario(user).filter(aluno_id=user.pk, ciclo_id=ciclo.pk).values_list("vinculo_id", flat=True))
+    return ciclo, [v for v in vinculos if v.pk not in concluidos]
 
 
 @papel_requerido(ALUNO)
 def pendencias(request):
     ciclo, vinculos = _pendencias(request.user)
-    return render(
-        request,
-        "aluno/pendencias.html",
-        {"ciclo": ciclo, "vinculos": vinculos},
-    )
+    return render(request, "aluno/pendencias.html", {"ciclo": ciclo, "vinculos": vinculos})
 
 
 @papel_requerido(ALUNO)
 def avaliar(request, vinculo_id):
-    vinculo = get_object_or_404(
-        Vinculo.objects.para_usuario(request.user).select_related(
-            "professor", "turma", "disciplina"
-        ),
-        pk=vinculo_id,
-    )
+    vinculo = get_object_or_404(Vinculo.objects.para_usuario(request.user).select_related("professor", "turma", "disciplina"), pk=vinculo_id)
     ciclo = _ciclo_aberto(request.user)
-    if (
-        ciclo is None
-        or not Matricula.objects.para_usuario(request.user)
-        .filter(aluno_id=request.user.pk, turma_id=vinculo.turma_id)
-        .exists()
-    ):
+    if ciclo is None or not Matricula.objects.para_usuario(request.user).filter(aluno_id=request.user.pk, turma_id=vinculo.turma_id).exists():
         raise Http404
-    ja_participou = (
-        Participacao.objects.para_usuario(request.user)
-        .filter(aluno_id=request.user.pk, ciclo_id=ciclo.pk, vinculo_id=vinculo.pk)
-        .exists()
-    )
+    ja_participou = Participacao.objects.para_usuario(request.user).filter(aluno_id=request.user.pk, ciclo_id=ciclo.pk, vinculo_id=vinculo.pk).exists()
     if ja_participou and request.method != "POST":
-        messages.info(
-            request, "Essa aula já foi registrada. Obrigado por participar da escuta."
-        )
+        messages.info(request, "Essa aula já foi registrada. Obrigado por participar da escuta.")
         return redirect("aluno")
     perguntas = list(Pergunta.objects.filter(ciclo_id=ciclo.pk).order_by("ordem"))
     form = AvaliacaoForm(perguntas, request.POST or None)
     if request.method == "POST" and form.is_valid():
         try:
             with transaction.atomic():
-                if Participacao.objects.filter(
-                    aluno_id=request.user.pk, ciclo_id=ciclo.pk, vinculo_id=vinculo.pk
-                ).exists():
+                if Participacao.objects.filter(aluno_id=request.user.pk, ciclo_id=ciclo.pk, vinculo_id=vinculo.pk).exists():
                     raise IntegrityError("participacao_duplicada")
-                Participacao.objects.create(
-                    aluno=request.user, ciclo=ciclo, vinculo=vinculo
-                )
+                Participacao.objects.create(aluno=request.user, ciclo=ciclo, vinculo=vinculo)
                 avaliacao = Avaliacao.objects.create(ciclo=ciclo, vinculo=vinculo.pk)
                 for pergunta, resposta in form.respostas():
                     if pergunta.tipo == Pergunta.Tipo.ESCALA_1_5:
-                        RespostaEscala.objects.create(
-                            avaliacao=avaliacao, pergunta=pergunta, valor=resposta
-                        )
+                        RespostaEscala.objects.create(avaliacao=avaliacao, pergunta=pergunta, valor=resposta)
+                    elif pergunta.tipo == Pergunta.Tipo.ESCOLHA_UNICA:
+                        if resposta not in pergunta.opcoes:
+                            raise ValidationError("Opção inválida para este questionário.")
+                        RespostaEscolhaUnica.objects.create(avaliacao=avaliacao, pergunta=pergunta, opcao=resposta)
                     else:
-                        RespostaTexto.objects.create(
-                            avaliacao=avaliacao,
-                            pergunta=pergunta,
-                            texto=(resposta or "").strip(),
-                        )
-        except IntegrityError:
-            form.add_error(
-                None,
-                "Essa aula já foi registrada. Sua contribuição já está protegida e não foi duplicada.",
-            )
+                        RespostaTexto.objects.create(avaliacao=avaliacao, pergunta=pergunta, texto=(resposta or "").strip())
+        except (IntegrityError, ValidationError):
+            form.add_error(None, "Essa aula já foi registrada ou a resposta não é válida. Sua contribuição não foi duplicada.")
         else:
             return redirect("aluno_obrigado")
-    return render(
-        request,
-        "aluno/avaliar.html",
-        {"form": form, "ciclo": ciclo, "vinculo": vinculo},
-    )
+    return render(request, "aluno/avaliar.html", {"form": form, "ciclo": ciclo, "vinculo": vinculo})
 
 
 @papel_requerido(ALUNO)

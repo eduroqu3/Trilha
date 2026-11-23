@@ -6,7 +6,7 @@
   <div class="site-container coord-layout">
     <p class="eyebrow"><span></span>ABRIR ESPAÇO DE ESCUTA</p>
     <h1>Ciclos de avaliação</h1>
-    <p class="auth-lede">Cada ciclo abre um questionário padrão para ouvir o contexto das aulas, sem rankings e sem identificar quem respondeu.</p>
+    <p class="auth-lede">Cada ciclo guarda uma cópia imutável do modelo escolhido, sem rankings e sem identificar quem respondeu.</p>
     {% include "coordenacao/_nav.html" %}
     <div class="coord-columns">
       <section class="auth-card coord-card" aria-labelledby="ciclos-abertos">
@@ -17,7 +17,7 @@
               <li>
                 <div>
                   <span>{{ ciclo.nome }}</span>
-                  <small>{{ ciclo.get_status_display }}</small>
+                  <small>{{ ciclo.get_status_display }}{% if ciclo.modelo_questionario %} · {{ ciclo.modelo_questionario.nome }}{% endif %}</small>
                 </div>
                 <div class="cycle-actions">
                   {% if ciclo.status == "ABERTO" %}
@@ -53,11 +53,12 @@
       </section>
       <section class="auth-card coord-card" aria-labelledby="novo-ciclo">
         <h2 id="novo-ciclo">Novo ciclo</h2>
-        <p class="form-help">O questionário padrão terá seis perguntas de escala e duas perguntas abertas.</p>
+        <p class="form-help">Escolha um modelo ativo. Depois que o ciclo abrir, suas perguntas ficam travadas.</p>
         {% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}
         <form method="post" class="coord-form" novalidate>
           {% csrf_token %}
           {% include "componentes/campo.html" with campo=form.nome %}
+          {% include "componentes/campo.html" with campo=form.modelo_questionario %}
           <button class="button button-primary" type="submit">Abrir ciclo <span aria-hidden="true">↗</span></button>
         </form>
       </section>
