@@ -3,32 +3,56 @@
 {% block title %}Cadastrar escola — Trilha{% endblock %}
 {% block content %}
 <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-<div class="site-container auth-topbar"><a class="auth-back" href="{% url 'home' %}"><span aria-hidden="true">←</span> Voltar ao início</a></div>
-<main id="conteudo" class="auth-page">
-  <div class="site-container auth-layout">
-    <section class="auth-intro">
-      <a class="brand auth-brand" href="{% url 'home' %}" aria-label="trilha — início"><img class="auth-logo" src="{% static 'img/logo-completo.png' %}" alt="trilha"></a>
-      <p class="eyebrow"><span></span>COMEÇAR UMA ESCUTA</p>
-      <h1>Um caminho para cada <em>escola.</em></h1>
-      <p>Crie o primeiro acesso da coordenação para organizar a escuta com calma, contexto e respeito.</p>
-      <p class="auth-quote"><span aria-hidden="true">✳</span> Uma boa conversa começa quando sabemos como chegar.</p>
+<div class="auth-split-wrapper">
+  <main id="conteudo" class="auth-split-card" style="max-width: 1040px;">
+    <!-- Painel Visual da Esquerda -->
+    <aside class="auth-split-banner" aria-hidden="true">
+      <div class="auth-split-banner-texture"></div>
+      <img class="auth-split-banner-art" src="{% static 'img/hero.svg' %}" alt="">
+      <div class="auth-split-banner-content">
+        <span class="auth-split-banner-badge">Novo Acesso</span>
+        <h2>Um caminho aberto para cada <em>escola.</em></h2>
+        <p>Crie o primeiro acesso da coordenação para organizar a escuta com calma, contexto e respeito pedagógico.</p>
+      </div>
+      <div class="auth-split-banner-footer">
+        <p><span style="color: var(--mustard); font-size: 16px;">✳</span> Uma boa conversa começa quando sabemos como chegar.</p>
+      </div>
+    </aside>
+
+    <!-- Painel do Formulário da Direita -->
+    <section class="auth-split-form-panel" aria-labelledby="cadastro-heading">
+      <div>
+        <div class="auth-split-header">
+          <a class="auth-split-back" href="{% url 'home' %}"><span aria-hidden="true">←</span> Voltar ao início</a>
+          <p class="auth-split-eyebrow">Primeiro acesso da escola</p>
+          <h1 id="cadastro-heading" class="auth-split-title">Cadastrar escola</h1>
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="form-alert" role="alert" style="margin-bottom: 20px;">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <form method="post" class="auth-split-form" novalidate>
+          {% csrf_token %}
+          {% include "componentes/campo.html" with campo=form.nome_escola %}
+          {% include "componentes/campo.html" with campo=form.nome_responsavel %}
+          {% include "componentes/campo.html" with campo=form.email %}
+          {% include "componentes/campo.html" with campo=form.senha %}
+          {% include "componentes/campo.html" with campo=form.confirmar_senha %}
+          <div class="honeypot" aria-hidden="true">{{ form.website }}</div>
+          <button class="button button-primary" type="submit">Criar acesso da escola <span aria-hidden="true">↗</span></button>
+        </form>
+      </div>
+
+      <div class="auth-split-footer">
+        <p class="auth-split-switch">Já tem acesso? <a href="{% url 'entrar' %}">Entrar</a></p>
+        <div class="auth-split-brand-bottom">
+          <a href="{% url 'home' %}" aria-label="trilha — início">
+            <img src="{% static 'img/logo-completo.png' %}" alt="trilha">
+          </a>
+        </div>
+      </div>
     </section>
-    <section class="auth-card" aria-labelledby="cadastro-heading">
-      <h2 id="cadastro-heading">Cadastrar minha escola</h2>
-      <p class="auth-lede">Preencha os dados de quem vai cuidar do primeiro acesso.</p>
-      {% if form.non_field_errors %}<div class="form-alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}
-      <form method="post" novalidate>
-        {% csrf_token %}
-        {% include "componentes/campo.html" with campo=form.nome_escola %}
-        {% include "componentes/campo.html" with campo=form.nome_responsavel %}
-        {% include "componentes/campo.html" with campo=form.email %}
-        {% include "componentes/campo.html" with campo=form.senha %}
-        {% include "componentes/campo.html" with campo=form.confirmar_senha %}
-        <div class="honeypot" aria-hidden="true">{{ form.website }}</div>
-        <button class="button button-primary" type="submit">Criar acesso <span aria-hidden="true">↗</span></button>
-      </form>
-      <p class="auth-switch">Já tem acesso? <a href="{% url 'entrar' %}">Entrar</a></p>
-    </section>
-  </div>
-</main>
+  </main>
+</div>
 {% endblock %}
